@@ -4,8 +4,6 @@
 #$ -cwd
 #$ -P hpc-ar-m3cfd
 
-export CPN=32
-
 module load apps/gcc/openfoam/v1812
 source $foamDotFile
 
@@ -13,41 +11,49 @@ source $foamDotFile
 . $WM_PROJECT_DIR/bin/tools/RunFunctions    # Tutorial run functions
 
 ##################################################################################################
-# RANS setup
 
-echo Setting up RANS...
-blockMesh &> log.blockMeshRANS
-topoSet -constant &> log.topoSetRANS
-checkMesh &> log.checkMeshRANS
+echo Creating Mesh...
+runApplication blockMesh
+runApplication checkMesh
+
+echo "Restore 0/ from 0_orig/"
+if [ -d 0_orig ]
+then
+    rm -rf 0
+    cp -r 0_orig 0
+else
+    echo "    Warning: no 0_orig/ found"
+fi
+
+echo "Set decomposition"
+foamDictionary -entry method -set ptscotch system/decomposeParDict
+foamDictionary -entry numberOfSubdomains -set $NPROCS system/decomposeParDict
+
+oldDecomp=$(echo processor* | wc -w)
+if [[ "$oldDecomp" != "$NPROCS" ]]
+then
+  if [ "$oldDecomp" -gt 0 ]
+  then
+    echo "We need to redistribute the mesh for: $NPROCS"
+    if [ "$oldDecomp" -gt "$NPROCS" ]; then
+      echo "Old decomposition is greater than allocated resource"
+      echo "This condition is not implemented"
+    else
+      runParallel -o redistributePar -overwrite -mergeTol 1e-9
+    fi
+  else
+    echo "We need to decompose the mesh for: $NPROCS"
+    runParallel decomposePar
+  fi
+fi
 
 export RANSsolver=$(getApplication)
-export RANSnproc=$(getNumberOfProcessors)
-export RANSnnodes=$(( ($RANSnproc + $CPN - 1) / $CPN ))
-rm -r 0
-cp -r 0_restart 0
 
-decomposePar &> log.decomposeRANS
-
-echo RANS Solver:     $RANSsolver
-echo RANS Processors: $RANSnproc
-echo RANS Nodes:      $RANSnnodes
-
-##################################################################################################
-# Renumbering
-
-echo Renumbering meshes
-# mpirun -np $RANSnproc renumberMesh -overwrite -constant -parallel &> log.renumberRANS
-
-##################################################################################################
-# potential
-
-mpirun -np $RANSnproc potentialFoam -parallel &> log.potentialRANS
-
-##################################################################################################
-# Running
-
-echo Running RANS...
-mpirun -np $RANSnproc --bind-to core $RANSsolver -parallel &> log.simpleRANS &
+echo "Renumbering meshes"
+runParallel renumberMesh -overwrite -constant
+echo "Running potentialFoam"
+runParallel potentialFoam
+echo "Running Solver $RANSsolver with $NPROCS processes"
+runParallel -a $RANSsolver
 
 exit 0
-
