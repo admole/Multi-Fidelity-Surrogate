@@ -1,0 +1,69 @@
+FoamFile
+{
+    version     2.0;
+    format      ascii;
+    class       dictionary;
+    location    "system";
+    object      controlDict;
+}
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+
+libs
+(
+//    "libMyCorrection.so"
+);
+
+application     pisoFoam;
+
+startFrom       latestTime;
+
+startTime       0;
+
+stopAt          endTime;
+//stopAt          writeNow;
+
+endTime         40.0;
+
+maxCo           0.6;
+
+adjustTimeStep  no;
+
+deltaT          5e-04;
+//deltaT          1e-03;
+
+writeControl     timeStep;
+//writeControl    adjustableRunTime;
+
+writeInterval   100;
+
+purgeWrite      10;
+
+writeFormat     ascii;
+
+writePrecision  6;
+
+writeCompression off;
+
+timeFormat      general;
+
+timePrecision   6;
+
+runTimeModifiable true;
+
+
+functions
+{
+    turbulenceFields
+    {
+        type            turbulenceFields;
+        libs            ("libfieldFunctionObjects.so");
+        writeControl    writeTime;
+        fields          (R nut nuTilda k epsilon omega);
+    }
+
+    #include "surfaces"
+    #include "lines"
+
+    #include "fileUpdate"
+}
+

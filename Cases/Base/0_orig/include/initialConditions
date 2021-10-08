@@ -1,0 +1,24 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v1812                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+Uf                      1;
+flowVelocity            ($Uf 0 0);
+pressure                0;
+
+turbulenceIntensity     0.05; 		//0.05; // 0.005
+Cmu                     0.09;
+H                       1;
+
+turbulentKE          #calc "1.5*pow($Uf*$turbulenceIntensity, 2.0)";
+turbulentOmega       #calc "pow($Cmu, -0.25)*pow($turbulentKE, 0.5)/($H*$H)";
+
+// turbulentNut         #calc "$Cmu*pow($turbulentKE, 2.0)/$turbulentEpsilon";
+
+// turbulentEpsilon     #calc "pow($Cmu, 0.75)*pow($turbulentKE, 1.5)/($H*$H)";
+
+// ************************************************************************* //

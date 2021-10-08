@@ -1,0 +1,53 @@
+#!/bin/bash --login
+#$ -N TC-ELES
+#$ -pe hpc.pe 256
+#$ -cwd
+#$ -P hpc-ar-m3cfd
+
+export CPN=32
+
+module load apps/gcc/openfoam/v1812
+source $foamDotFile
+
+# cd ${0%/*} || exit 1                                    # Run from this directory
+. $WM_PROJECT_DIR/bin/tools/RunFunctions    # Tutorial run functions
+
+##################################################################################################
+# RANS setup
+
+echo Setting up RANS...
+blockMesh &> log.blockMeshRANS
+topoSet -constant &> log.topoSetRANS
+checkMesh &> log.checkMeshRANS
+
+export RANSsolver=$(getApplication)
+export RANSnproc=$(getNumberOfProcessors)
+export RANSnnodes=$(( ($RANSnproc + $CPN - 1) / $CPN ))
+rm -r 0
+cp -r 0_restart 0
+
+decomposePar &> log.decomposeRANS
+
+echo RANS Solver:     $RANSsolver
+echo RANS Processors: $RANSnproc
+echo RANS Nodes:      $RANSnnodes
+
+##################################################################################################
+# Renumbering
+
+echo Renumbering meshes
+# mpirun -np $RANSnproc renumberMesh -overwrite -constant -parallel &> log.renumberRANS
+
+##################################################################################################
+# potential
+
+mpirun -np $RANSnproc potentialFoam -parallel &> log.potentialRANS
+
+##################################################################################################
+# Running
+
+echo Running RANS...
+mpirun -np $RANSnproc --bind-to core $RANSsolver -parallel &> log.simpleRANS &
+
+exit 0
+
