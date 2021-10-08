@@ -1,8 +1,10 @@
 [
   {
-    "name": "test1"
+    "name": "test1",
+    "RASModel": "kOmegaSST"
   },
   {
-    "name": "test2"
+    "name": "test2",
+    "RASModel": "kOmegaSST"
   }
 ]
