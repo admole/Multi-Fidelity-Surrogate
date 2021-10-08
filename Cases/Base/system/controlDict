@@ -13,30 +13,25 @@ libs
 //    "libMyCorrection.so"
 );
 
-application     pisoFoam;
+application     simpleFoam;
 
 startFrom       latestTime;
 
 startTime       0;
 
 stopAt          endTime;
-//stopAt          writeNow;
 
-endTime         40.0;
-
-maxCo           0.6;
+endTime         2000;
 
 adjustTimeStep  no;
 
-deltaT          5e-04;
-//deltaT          1e-03;
+deltaT          1;
 
 writeControl     timeStep;
-//writeControl    adjustableRunTime;
 
-writeInterval   100;
+writeInterval   500;
 
-purgeWrite      10;
+purgeWrite      1;
 
 writeFormat     ascii;
 
