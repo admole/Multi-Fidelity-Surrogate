@@ -1,4 +1,4 @@
-rm -r log.* *.log runBoth.* runTest.* pvserver.sh.* RL.* LR.* RLR.* TC-ELES.*
+rm -r log.* *.log runBoth.* runTest.* pvserver.sh.* TC-*.*
 
 rm -r dynamicCode postProcessing
 cp -r 0 0.temp

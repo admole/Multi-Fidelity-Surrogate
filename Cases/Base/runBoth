@@ -1,5 +1,5 @@
 #!/bin/bash --login
-#$ -N TC-ELES
+#$ -N TC-Base
 #$ -pe hpc.pe 256
 #$ -cwd
 #$ -P hpc-ar-m3cfd

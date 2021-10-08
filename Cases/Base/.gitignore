@@ -4,8 +4,7 @@ runBoth.*
 runTest.*
 pvserver.sh.*
 pvserver_small.sh.*
-RL.*
-TC-ELES.*
+TC-*.*
 
 dynamicCode
 postProcessing
