@@ -1,0 +1,50 @@
+/*--------------------------------*- C++ -*----------------------------------*\
+| =========                 |                                                 |
+| \\      /  F ield         | OpenFOAM: The Open Source CFD Toolbox           |
+|  \\    /   O peration     | Version:  v1812                                 |
+|   \\  /    A nd           | Web:      www.OpenFOAM.com                      |
+|    \\/     M anipulation  |                                                 |
+\*---------------------------------------------------------------------------*/
+
+cube1-forces
+{
+    type            forceCoeffs;
+    libs            ("libforces.so");
+    writeControl    timeStep;
+    writeInterval   1;
+
+    patches         ("CUBE1");
+    rho             rhoInf;      // Indicates incompressible
+    log             true;
+    rhoInf          1;           // Required when rho = rhoInf
+    liftDir         (0 0 1);
+    dragDir         (1 0 0);
+    CofR            (2.5 0 0);  // Midpoint on ground
+    pitchAxis       (0 1 0);
+    magUInf         1.0;
+    lRef            1.0;        // Cube length
+    Aref            1.0;        // Cube area
+}
+
+cube2-forces
+{
+    type            forceCoeffs;
+    libs            ("libforces.so");
+    writeControl    timeStep;
+    writeInterval   1;
+
+    patches         ("CUBE2");
+    rho             rhoInf;      // Indicates incompressible
+    log             true;
+    rhoInf          1;           // Required when rho = rhoInf
+    liftDir         (0 0 1);
+    dragDir         (1 0 0);
+    CofR            (7.5 0 0);  // Midpoint on ground
+    pitchAxis       (0 1 0);
+    magUInf         1.0;
+    lRef            1.0;        // Cube length
+    Aref            1.0;        // Cube area
+}
+
+
+// ************************************************************************* //
