@@ -26,7 +26,7 @@ else
 fi
 
 echo "Set decomposition"
-foamDictionary -entry method -set ptscotch system/decomposeParDict
+foamDictionary -entry method -set scotch system/decomposeParDict
 foamDictionary -entry numberOfSubdomains -set $NPROCS system/decomposeParDict
 
 oldDecomp=$(echo processor* | wc -w)
@@ -43,7 +43,7 @@ then
     fi
   else
     echo "We need to decompose the mesh for: $NPROCS"
-    runParallel decomposePar
+    runApplication decomposePar
   fi
 fi
 
