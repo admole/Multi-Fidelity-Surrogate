@@ -10,7 +10,8 @@ surfaces
 {
     type            	surfaces;
     libs            	("libsampling.so");
-    writeControl    	writeTime;
+    executeControl      onEnd;
+    writeControl        onEnd;
 
     surfaceFormat   vtk;
     fields          (p U k);
@@ -54,19 +55,6 @@ surfaces
             }
             interpolate     true;
         }
-
-        inlet
-        {
-            type            cuttingPlane;
-            planeType       pointAndNormal;
-            pointAndNormalDict
-            {
-                point   (0 4 0);
-                normal  (0 1 0);
-            }
-            interpolate     true;
-        }
-
 
     );
 }

@@ -19,9 +19,9 @@ lines
 {
     type            	sets;
     libs            	("libsampling.so");
-    writeControl    	writeTime;
-
-    setFormat   	raw;
+    executeControl      onEnd;
+    writeControl        onEnd;
+    setFormat   	    raw;
     fields          	(p U k);
 
     interpolationScheme cellPoint;
