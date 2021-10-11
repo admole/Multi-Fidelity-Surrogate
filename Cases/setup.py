@@ -6,6 +6,7 @@ import os
 import numpy as np
 import json
 import shutil
+import glob
 
 from os import path
 from PyFoam.RunDictionary.SolutionDirectory import SolutionDirectory
@@ -238,8 +239,11 @@ class Case:
 
     def create_case(self):
         print(f"\nSetting up {self.Name}")
-        print(f"Copying base case to {self.Name}")
-        shutil.copytree("Base", self.Name)
+        if self.Name not in glob.glob(path.basename(path.normpath(path.join(os.getcwd(), self.Name)))):
+            print(f"Copying base case to {self.Name}")
+            shutil.copytree("Base", self.Name)
+        else:
+            print(f"{self.Name} already exists\nModifying current case")
         self.set_model()
         self.setup_blockmesh()
 
