@@ -1,0 +1,8 @@
+# ignore everything (dirs, files, sub-dirs, sub-files)
+/*
+# except
+!.gitignore
+!Base
+!setup.py
+!cases.json
+!README.md
