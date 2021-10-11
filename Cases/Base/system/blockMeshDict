@@ -16,184 +16,40 @@ FoamFile
 
 scale   1;
 
-// Constants
-Height      4.0;
-Width       9.0;
-Cube        1.0;
-Spacing     4.0;
-Length      14.0;
-Inlet       2.0;
-
-// Locations
-z0      #calc "0 - $Width / 2.0";
-z1      #calc "0 - 3.0/2.0 * $Cube";
-z2      #calc "0 - $Cube / 2.0";
-z3      #calc "$Cube / 2.0";
-z4      #calc "3.0/2.0 * $Cube";
-z5      #calc "$Width / 2.0";
-
-x0      0.0;
-x1      #calc "$Inlet - $Cube";
-x2      $Inlet;
-x3      #calc "$Inlet + $Cube";
-x4      #calc "$Inlet + 2 * $Cube";
-x5      #calc "$Inlet + $Spacing";
-x6      #calc "$Inlet + $Cube + $Spacing";
-x7      #calc "$Inlet + $Cube + $Spacing + $Cube";
-x8      #calc "$Inlet + $Spacing + 3 * $Cube";
-x9      $Length;
-
-y0      0.0;
-y1      $Cube;
-y2      #calc "2 * $Cube";
-y3      $Height;
-
 // Number of cells
-Nxi     10;
-Nxc     40;
-Nxb     25;
-Nxo     20;
+Nxi     0;
+Nxc     0;
+Nxb     0;
+Nxo     0;
 
-Nyl     85;
-Nyu     15;
+Nyl     0;
+Nyu     0;
 
-Nzo     15;
-Nzc     $Nxc;
+Nzo     0;
+Nzc     0;
 
-Nnc     75;
+Nnc     0;
 
 // Grading
-ywall   20.0;
-yfar    3.0;
+ywall   0;
+yfar    0;
 
-xin     0.4;
-xc      1;
-xb      1;
-xo      10;
+xin     0;
+xc      0;
+xb      0;
+xo      0;
 
-zc      1;
-zr      7.5;      
-zl      #calc "1.0 / $zr";
+zc      0;
+zr      0;      
+zl      0.0;
 
-nc      20;
-ncm     #calc "1.0 / $nc";
+nc      0;
+ncm     0.0;
 
 vertices
 (
 
-    ($x0 $y0 $z0)   //0
-    ($x1 $y0 $z0)   //1
-    ($x4 $y0 $z0)   //2
-    ($x5 $y0 $z0)   //3
-    ($x8 $y0 $z0)   //4
-    ($x9 $y0 $z0)   //5
-
-    ($x0 $y2 $z0)   //6
-    ($x1 $y2 $z0)   //7
-    ($x4 $y2 $z0)   //8
-    ($x5 $y2 $z0)   //9
-    ($x8 $y2 $z0)   //10
-    ($x9 $y2 $z0)   //11
-
-    ($x0 $y3 $z0)   //12
-    ($x1 $y3 $z0)   //13
-    ($x4 $y3 $z0)   //14
-    ($x5 $y3 $z0)   //15
-    ($x8 $y3 $z0)   //16
-    ($x9 $y3 $z0)   //17
-
-//--------------------------//
-
-    ($x0 $y0 $z1)   //18
-    ($x1 $y0 $z1)   //19
-    ($x4 $y0 $z1)   //20
-    ($x5 $y0 $z1)   //21
-    ($x8 $y0 $z1)   //22
-    ($x9 $y0 $z1)   //23
-
-    ($x0 $y2 $z1)   //24
-    ($x1 $y2 $z1)   //25
-    ($x4 $y2 $z1)   //26
-    ($x5 $y2 $z1)   //27
-    ($x8 $y2 $z1)   //28
-    ($x9 $y2 $z1)   //29
-
-    ($x0 $y3 $z1)   //30
-    ($x1 $y3 $z1)   //31
-    ($x4 $y3 $z1)   //32
-    ($x5 $y3 $z1)   //33
-    ($x8 $y3 $z1)   //34
-    ($x9 $y3 $z1)   //35
-
-//--------------------------//
-
-    ($x2 $y0 $z2)   //36
-    ($x3 $y0 $z2)   //37
-    ($x6 $y0 $z2)   //38
-    ($x7 $y0 $z2)   //39
-
-    ($x2 $y1 $z2)   //40
-    ($x3 $y1 $z2)   //41
-    ($x6 $y1 $z2)   //42
-    ($x7 $y1 $z2)   //43
-
-//--------------------------//
-
-    ($x2 $y0 $z3)   //44
-    ($x3 $y0 $z3)   //45
-    ($x6 $y0 $z3)   //46
-    ($x7 $y0 $z3)   //47
-
-    ($x2 $y1 $z3)   //48
-    ($x3 $y1 $z3)   //49
-    ($x6 $y1 $z3)   //50
-    ($x7 $y1 $z3)   //51
-
-//--------------------------//
-
-    ($x0 $y0 $z4)   //52
-    ($x1 $y0 $z4)   //53
-    ($x4 $y0 $z4)   //54
-    ($x5 $y0 $z4)   //55
-    ($x8 $y0 $z4)   //56
-    ($x9 $y0 $z4)   //57
-
-    ($x0 $y2 $z4)   //58
-    ($x1 $y2 $z4)   //59
-    ($x4 $y2 $z4)   //60
-    ($x5 $y2 $z4)   //61
-    ($x8 $y2 $z4)   //62
-    ($x9 $y2 $z4)   //63
-
-    ($x0 $y3 $z4)   //64
-    ($x1 $y3 $z4)   //65
-    ($x4 $y3 $z4)   //66
-    ($x5 $y3 $z4)   //67
-    ($x8 $y3 $z4)   //68
-    ($x9 $y3 $z4)   //69
-
-//--------------------------//
-
-    ($x0 $y0 $z5)   //70
-    ($x1 $y0 $z5)   //71
-    ($x4 $y0 $z5)   //72
-    ($x5 $y0 $z5)   //73
-    ($x8 $y0 $z5)   //74
-    ($x9 $y0 $z5)   //75
-
-    ($x0 $y2 $z5)   //76
-    ($x1 $y2 $z5)   //77
-    ($x4 $y2 $z5)   //78
-    ($x5 $y2 $z5)   //79
-    ($x8 $y2 $z5)   //80
-    ($x9 $y2 $z5)   //81
-
-    ($x0 $y3 $z5)   //82
-    ($x1 $y3 $z5)   //83
-    ($x4 $y3 $z5)   //84
-    ($x5 $y3 $z5)   //85
-    ($x8 $y3 $z5)   //86
-    ($x9 $y3 $z5)   //87
+    (0 1 0)   //0
 
 );
 
@@ -223,7 +79,7 @@ blocks
     hex (20 54 60 26  37 45 49 41)  ($Nzc $Nyl $Nnc) simpleGrading ($zc $ywall $ncm)     //b
     hex (19 20 26 25  36 37 41 40)  ($Nxc $Nyl $Nnc) simpleGrading ($xc $ywall $ncm)     //r
     hex (44 45 49 48  53 54 60 59)  ($Nxc $Nyl $Nnc) simpleGrading ($xc $ywall $nc)     //l
-    hex (40 48 49 41  25 59 60 26)  ($Nxc $Nzc $Nnc) simpleGrading ($xc $zc    $nc)     //t
+    hex (40 48 49 41  25 59 60 26)  ($Nzc $Nxc $Nnc) simpleGrading ($zc $xc    $nc)     //t
 
     //Gap-New
     hex (2  3  9  8   20 21 27 26)  ($Nxb $Nyl $Nzo) simpleGrading ($xb $ywall $zl)         //16
@@ -245,7 +101,7 @@ blocks
     hex (22 56 62 28  39 47 51 43)  ($Nzc $Nyl $Nnc) simpleGrading ($zc $ywall $ncm)     //b
     hex (21 22 28 27  38 39 43 42)  ($Nxc $Nyl $Nnc) simpleGrading ($xc $ywall $ncm)     //r
     hex (46 47 51 50  55 56 62 61)  ($Nxc $Nyl $Nnc) simpleGrading ($xc $ywall $nc)     //l
-    hex (42 50 51 43  27 61 62 28)  ($Nxc $Nzc $Nnc) simpleGrading ($xc $zc    $nc)     //t
+    hex (42 50 51 43  27 61 62 28)  ($Nzc $Nxc $Nnc) simpleGrading ($zc $xc    $nc)     //t
 
     //Back-New
     hex (4  5  11 10  22 23 29 28)  ($Nxo $Nyl $Nzo) simpleGrading ($xo $ywall $zl)         //32
@@ -344,7 +200,8 @@ boundary
 
     RIGHT
     {
-        type            patch;
+        type            cyclic;
+        neighbourPatch  LEFT;
         faces           (
                         (0  1  7  6 )
                         (1  2  8  7 )
@@ -362,7 +219,8 @@ boundary
 
     LEFT
     {
-        type            patch;
+        type            cyclic;
+        neighbourPatch  RIGHT;
         faces           (
                         (70 76 77 71)
                         (71 77 78 72)
