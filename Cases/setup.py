@@ -219,7 +219,13 @@ class Case:
             for keys in self.Geometry:
                 if key == keys:
                     bm[key] = self.Geometry[keys]
-            for keys in self.Locations:
+            for keys in self.Locations['x']:
+                if key == keys:
+                    bm[key] = self.Locations[keys]
+            for keys in self.Locations['y']:
+                if key == keys:
+                    bm[key] = self.Locations[keys]
+            for keys in self.Locations['z']:
                 if key == keys:
                     bm[key] = self.Locations[keys]
             for keys in self.Ncells:
