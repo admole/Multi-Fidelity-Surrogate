@@ -14,7 +14,7 @@ surfaces
     writeControl        onEnd;
 
     surfaceFormat   vtk;
-    fields          (p U k);
+    fields          (p U k nut);
 
     interpolationScheme cellPoint;
 
