@@ -27,22 +27,22 @@ fi
 
 echo "Set decomposition"
 foamDictionary -entry method -set scotch system/decomposeParDict
-foamDictionary -entry numberOfSubdomains -set $NPROCS system/decomposeParDict
+foamDictionary -entry numberOfSubdomains -set $NSLOTS system/decomposeParDict
 
 oldDecomp=$(echo processor* | wc -w)
-if [[ "$oldDecomp" != "$NPROCS" ]]
+if [[ "$oldDecomp" != "$NSLOTS" ]]
 then
   if [ "$oldDecomp" -gt 1 ]
   then
-    echo "We need to redistribute the mesh for: $NPROCS"
-    if [ "$oldDecomp" -gt "$NPROCS" ]; then
+    echo "We need to redistribute the mesh for: $NSLOTS"
+    if [ "$oldDecomp" -gt "$NSLOTS" ]; then
       echo "Old decomposition is greater than allocated resource"
       echo "This condition is not implemented"
     else
       runParallel -o redistributePar -overwrite -mergeTol 1e-9
     fi
   else
-    echo "We need to decompose the mesh for: $NPROCS"
+    echo "We need to decompose the mesh for: $NSLOTS"
     runApplication decomposePar
   fi
 fi
@@ -53,7 +53,7 @@ echo "Renumbering meshes"
 runParallel renumberMesh -overwrite -constant
 echo "Running potentialFoam"
 runParallel potentialFoam
-echo "Running Solver $RANSsolver with $NPROCS processes"
+echo "Running Solver $RANSsolver with $NSLOTS processes"
 runParallel -a $RANSsolver
 
 exit 0
