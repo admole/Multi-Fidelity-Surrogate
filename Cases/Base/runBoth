@@ -32,7 +32,7 @@ foamDictionary -entry numberOfSubdomains -set $NPROCS system/decomposeParDict
 oldDecomp=$(echo processor* | wc -w)
 if [[ "$oldDecomp" != "$NPROCS" ]]
 then
-  if [ "$oldDecomp" -gt 0 ]
+  if [ "$oldDecomp" -gt 1 ]
   then
     echo "We need to redistribute the mesh for: $NPROCS"
     if [ "$oldDecomp" -gt "$NPROCS" ]; then
