@@ -1,10 +1,12 @@
 [
   {
     "Name": "test1",
-    "RASModel": "kOmegaSST"
+    "RASModel": "kOmegaSST",
+    "Offset": 1.0
   },
   {
     "Name": "test2",
-    "RASModel": "kOmegaSST"
+    "RASModel": "kOmegaSST",
+    "FlowAngle": 15
   }
 ]

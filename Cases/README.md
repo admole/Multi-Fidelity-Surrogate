@@ -22,6 +22,7 @@ An example containing all the parameters that can be changed and their default v
     "Offset": 0.0
   },
   "FlowAngle": 0.0,
+  "FlowVelocity": 1.0,
   "Ncells": {
     "Nxi": 10,
     "Nxc": 40,

@@ -31,6 +31,7 @@ class Case:
             'Offset': 0.0,
         }
         self.FlowAngle = 0.0
+        self.FlowVelocity = 1.0
         self.Locations = {}
         self.Vertices = []
         self.Ncells = {
@@ -243,6 +244,16 @@ class Case:
         turbfile['RAS']['RASModel'] = self.RASModel
         turbfile.writeFile()
 
+    def set_inlet(self):
+        bcfile = ParsedParameterFile(f"{self.Name}/0_orig/U")
+        print(f"Setting inlet angle of {self.FlowAngle} degrees")
+        rad_angle = np.radians(self.FlowAngle)
+        velocity = Vector(self.FlowVelocity*np.cos(rad_angle), 0, self.FlowVelocity*np.sin(rad_angle))
+        bcfile["internalField"] = f"uniform {velocity}"
+        bcfile["boundaryField"]["INLET"]["value"] = f"uniform {velocity}"
+        print(f"Velocity field is {bcfile['internalField']}")
+        bcfile.writeFile()
+
     def create_case(self):
         print(f"\nSetting up {self.Name}")
         if self.Name not in glob.glob(path.basename(path.normpath(path.join(os.getcwd(), self.Name)))):
@@ -252,6 +263,7 @@ class Case:
             print(f"{self.Name} already exists\nModifying current case")
         self.set_model()
         self.setup_blockmesh()
+        self.set_inlet()
 
 
 # Opening JSON file
