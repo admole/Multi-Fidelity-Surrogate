@@ -13,7 +13,7 @@ surfaces
     executeControl      onEnd;
     writeControl        onEnd;
 
-    surfaceFormat   vtk;
+    surfaceFormat   raw;
     fields          (p U k nut);
 
     interpolationScheme cellPoint;
