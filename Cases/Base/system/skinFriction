@@ -27,6 +27,7 @@ wallShearStress
         type            wallShearStress;
         libs            ("libfieldFunctionObjects.so");
         log             yes;
+        U               UMean;
         executeControl  onEnd;
         writeControl    onEnd;
     }

@@ -14,7 +14,7 @@ surfaces
     writeControl        onEnd;
 
     surfaceFormat   raw;
-    fields          (p U k nut);
+    fields          (pMean UMean kMean nutMean);
 
     interpolationScheme cellPoint;
 

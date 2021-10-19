@@ -13,7 +13,7 @@ libs
 //    "libMyCorrection.so"
 );
 
-application     simpleFoam;
+application     pimpleFoam;
 
 startFrom       latestTime;
 
@@ -21,11 +21,11 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         2000;
+endTime         25;
 
 adjustTimeStep  no;
 
-deltaT          1;
+deltaT          0.001;
 
 writeControl     timeStep;
 
@@ -56,6 +56,7 @@ functions
         fields          (R nut nuTilda k epsilon omega);
     }
 
+    #include "averaging"
     #include "surfaces"
     #include "lines"
     #include "skinFriction"

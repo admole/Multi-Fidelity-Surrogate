@@ -40,13 +40,17 @@ relaxationFactors
 {
   equations
   {
-    U 0.8;
-    k 0.8;
-    omega 0.8;
+    U 0.7;
+    UFinal 1.0;
+    k 0.7;
+    kFinal 1.0;
+    omega 0.7;
+    omegaFinal 1.0;
   }
   fields
   {
-    p 0.7;
+    p 0.4;
+    pFinal 1.0;
   }
 }
 
@@ -167,7 +171,7 @@ PIMPLE
 {
   nCorrectors 2;
   nNonOrthogonalCorrectors 1;
-  nOuterCorrectors 50;
+  nOuterCorrectors 25;
   residualControl
   {
     U

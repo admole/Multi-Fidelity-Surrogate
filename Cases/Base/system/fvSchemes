@@ -65,7 +65,7 @@ divSchemes
 
 ddtSchemes
 {
-  default steadyState;
+  default backward;
 }
 
 interpolationSchemes

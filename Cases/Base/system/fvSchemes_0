@@ -20,7 +20,7 @@ FoamFile
     version 2;
     format ascii;
     class dictionary;
-    object "fvSchemes_0";
+    object "fvSchemes_3";
 }
 
 snGradSchemes
@@ -59,13 +59,13 @@ divSchemes
   div((nuEff*dev2(T(grad(U))))) Gauss linear;
   div(div(phi,U)) Gauss linear;
   div(phi,U) bounded Gauss linearUpwindV grad(U);
-  div(phi,k) bounded Gauss upwind;
-  div(phi,omega) bounded Gauss upwind;
+  div(phi,k) bounded Gauss linearUpwind grad(k);
+  div(phi,omega) bounded Gauss linearUpwind grad(omega);
 }
 
 ddtSchemes
 {
-  default steadyState;
+  default backward;
 }
 
 interpolationSchemes

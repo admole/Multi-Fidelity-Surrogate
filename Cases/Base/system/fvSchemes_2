@@ -20,7 +20,7 @@ FoamFile
     version 2;
     format ascii;
     class dictionary;
-    object "fvSchemes_2";
+    object "fvSchemes_3";
 }
 
 snGradSchemes
@@ -65,7 +65,7 @@ divSchemes
 
 ddtSchemes
 {
-  default steadyState;
+  default backward;
 }
 
 interpolationSchemes

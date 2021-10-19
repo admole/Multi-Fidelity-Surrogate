@@ -39,17 +39,17 @@ fvSchemesUpdate
       )
 
       (
-        0.1
+        1
         "<system>/fvSchemes_1"
       )
 
       (
-        0.2
+        2
         "<system>/fvSchemes_2"
       )
 
       (
-        0.5
+        5
         "<system>/fvSchemes_3"
       )
     );
@@ -74,17 +74,17 @@ fvSolutionUpdate
       )
 
       (
-        0.1
+        1
         "<system>/fvSolution_1"
       )
 
       (
-        0.2
+        2
         "<system>/fvSolution_2"
       )
 
       (
-        0.5
+        5
         "<system>/fvSolution_3"
       )
     );
