@@ -7,6 +7,7 @@ import numpy as np
 import json
 import shutil
 import glob
+import sys
 
 from os import path
 from PyFoam.RunDictionary.SolutionDirectory import SolutionDirectory
@@ -267,8 +268,17 @@ class Case:
 
 
 # Opening JSON file
-j = open(path.join(os.getcwd(), "cases.json"))  # Check this works elsewhere
-case_settings = json.load(j)
+case_settings = []
+files = sys.argv[1:]
+if files:
+    for file in files:
+        print(f"Reading case settings from {file}")
+        j = open(path.join(os.getcwd(), file))
+        case_settings.extend(json.load(j))
+else:
+    print("No file passed so creating cases from cases.json")
+    j = open(path.join(os.getcwd(), "cases.json"))
+    case_settings = json.load(j)
 
 cases = []
 for i in range(len(case_settings)):
