@@ -25,12 +25,12 @@ FoamFile
 
 snGradSchemes
 {
-  default limited 0.333;
+  default limited 0.5;
 }
 
 laplacianSchemes
 {
-  default Gauss linear limited 0.333;
+  default Gauss linear limited 0.5;
 }
 
 fluxRequired

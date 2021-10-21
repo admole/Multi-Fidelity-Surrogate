@@ -33,7 +33,7 @@ potentialFlow
 SIMPLE
 {
   consistent yes;
-  nNonOrthogonalCorrectors 2;
+  nNonOrthogonalCorrectors 1;
 }
 
 relaxationFactors
@@ -46,7 +46,7 @@ relaxationFactors
   }
   fields
   {
-    p 1;
+    p 0.5;
   }
 }
 
@@ -187,7 +187,7 @@ PISO
 {
   nCorrectors     2;
   nOuterCorrectors 2;
-  nNonOrthogonalCorrectors 4;
+  nNonOrthogonalCorrectors 1;
   pRefCell        0;
   pRefValue       0;
 }
