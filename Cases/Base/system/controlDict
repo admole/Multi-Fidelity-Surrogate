@@ -48,14 +48,7 @@ runTimeModifiable true;
 
 functions
 {
-    turbulenceFields
-    {
-        type            turbulenceFields;
-        libs            ("libfieldFunctionObjects.so");
-        writeControl    writeTime;
-        fields          (R nut nuTilda k epsilon omega);
-    }
-
+    #include "turbulenceFields"
     #include "averaging"
     #include "surfaces"
     #include "lines"
