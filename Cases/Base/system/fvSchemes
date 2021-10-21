@@ -50,7 +50,7 @@ gradSchemes
   grad(U) cellLimited<Venkatakrishnan> Gauss linear 1.0;
   grad(k) cellLimited Gauss linear 1;
   grad(omega) cellLimited Gauss linear 1;
-  grad(p) Gauss linear;
+  grad(p) Gauss linear 0.333;
 }
 
 divSchemes

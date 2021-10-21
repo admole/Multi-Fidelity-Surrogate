@@ -21,11 +21,11 @@ startTime       0;
 
 stopAt          endTime;
 
-endTime         25;
+endTime         200;
 
 adjustTimeStep  no;
 
-deltaT          0.001;
+deltaT          0.1;
 
 writeControl     timeStep;
 
@@ -63,6 +63,6 @@ functions
     #include "yPlus"
     #include "forceCoeffs"
 
-    #include "fileUpdate"
+//     #include "fileUpdate"
 }
 
