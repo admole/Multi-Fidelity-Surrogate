@@ -22,7 +22,7 @@ lines
     executeControl      onEnd;
     writeControl        onEnd;
     setFormat   	    raw;
-    fields          	(p U k nut);
+    fields          	(pMean UMean kMean nutMean);
 
     interpolationScheme cellPoint;
 
