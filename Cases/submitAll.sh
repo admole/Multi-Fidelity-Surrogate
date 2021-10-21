@@ -2,7 +2,7 @@
 
 for name in *
 do
-  if [ -d "$name" ] && [ "$name" != "Base" ]
+  if [ -d "$name" ] && [ "$name" != "Base" ] && [ "$name" != "OLD" ]
   then
     echo "Running $name"
     cd "$name" ||exit
