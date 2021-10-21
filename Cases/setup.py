@@ -20,6 +20,7 @@ from PyFoam.Basics.DataStructures import Vector
 class Case:
 
     def __init__(self, settings):
+        self.Settings = settings
         self.Name = "test1"
         self.RASModel = "kOmegaSST"
         self.Geometry = {
@@ -255,6 +256,10 @@ class Case:
         print(f"Velocity field is {bcfile['internalField']}")
         bcfile.writeFile()
 
+    def write_settings(self):
+        with open(path.join(self.Name, 'case_settings'), 'w') as outfile:
+            json.dump(self.Settings, outfile)
+
     def create_case(self):
         print(f"\nSetting up {self.Name}")
         if self.Name not in glob.glob(path.basename(path.normpath(path.join(os.getcwd(), self.Name)))):
@@ -265,6 +270,7 @@ class Case:
         self.set_model()
         self.setup_blockmesh()
         self.set_inlet()
+        self.write_settings()
 
 
 # Opening JSON file
