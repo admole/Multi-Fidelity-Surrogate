@@ -1,12 +1,12 @@
 # Cases Setup
 
 This directory contains a base case for the Tandem cubes and a script for creating additional cases.
-The definitions of the cases to be created are stored in the cases.json file.
+The definitions of the cases to be created are stored in *.json files an example of which is given by the cases.json file.
 
 ## Cases.json
 This file contains a list of dictionaries defining the parameters to be modified for each case.
 If any of the parameters is not set then a default will be used.
-An example containing all the parameters that can be changed and their default values is included below:
+An example entry containing all the parameters that can be changed and their default values is included below:
 
 ```json
 {
@@ -51,12 +51,14 @@ An example containing all the parameters that can be changed and their default v
 ```
 
 cases.json contains an example setup for a number of cases.
+mesh.json contains the setup for cases used for a mesh resolution study.
 
 ## Running
 
-To setup the cases defined in cases.json run:
+To set up the cases defined in cases.json run:
 
 ```bash
+chmod +x setup.py
 ./setup.py
 ```
 or
@@ -65,3 +67,10 @@ python3 setup.py
 ```
 
 This requires python3 and the packages used to be available.
+
+By default, the cases defined in cases.json are used.
+To use other *.json file(s) containing the cases to be set up the files can be specified as argument(s) like:
+
+```bash
+python3 setup.py cases.json mesh.json
+```
