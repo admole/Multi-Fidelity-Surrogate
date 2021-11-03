@@ -4,13 +4,22 @@
 import pandas as pd
 import numpy as np
 import fonts
+import glob
 
 
 def get_forces(case, cube):
-    cols = ['time', 'Cm', 'Cd', 'Cl', 'Clf', 'Clr']
-    data = pd.read_csv(f'../Data/{case}/postProcessing/{cube}-forces/0/coefficient.dat',
-                       skiprows=10, sep=r'\s+', names=cols, header=None, engine='python')
-
+    file = glob.glob(f'../Data/{case}/postProcessing/{cube}-forces/*/coefficient.dat')
+    file = file[0]
+    with open(file) as f:
+        line = f.readline()
+        cnt = 0
+        while line.startswith('#'):
+            prev_line = line
+            line = f.readline()
+            cnt += 1
+            # print(prev_line)
+    header = prev_line.strip().lstrip('# ').split()
+    data = pd.read_csv(file, comment='#', sep=r'\s+', names=header, header=None, engine='python')
     return data
 
 
@@ -24,8 +33,8 @@ def plot_forces(case, ax):
     data1 = get_forces(case, 'cube1')
     data2 = get_forces(case, 'cube2')
     # Plotting Cd
-    data1.plot(x='time', y='Cd', ax=ax, style='r')
-    data2.plot(x='time', y='Cd', ax=ax, style='b')
+    data1.plot(x='Time', y='Cd', ax=ax, style='r')
+    data2.plot(x='Time', y='Cd', ax=ax, style='b')
     ax.set_xlabel(r'Iterations')
     ax.set_ylabel(r'Cd')
     ax.set_title(case)
