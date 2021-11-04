@@ -32,13 +32,14 @@ def get_yaw(model):
         # recirc[i] = cf.recirculation(case)
         # print(recirc[i])
     data = {r'$\alpha$': alpha, r'$Cd_1$': cd1, r'$Cd_2$': cd2}
-    return data
+    df = pd.DataFrame(data=data)
+    return df
 
 
 def plot_yaw(ax, rans, les, variable):
     ax.plot(rans[r'$\alpha$'], rans[variable], 'r.', markersize=12, label=f'RANS Sample')
-    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = mfGP.mfgp(rans[r'$\alpha$'], rans[variable],
-                                                                               les[r'$\alpha$'], les[variable])
+    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = mfGP.mfgp(rans[r'$\alpha$'].to_numpy(), rans[variable].to_numpy(),
+                                                                               les[r'$\alpha$'].to_numpy(), les[variable].to_numpy())
     ax.plot(alpha, rans_mean, 'r', label='RANS GP Mean')
     ax.fill_between(alpha[:, 0], rans_mean[:, 0] - rans_std, rans_mean[:, 0] + rans_std, alpha=0.2, color='r')
     ax.plot(les[r'$\alpha$'], les[variable], 'b.', markersize=12, label=f'LES Sample')
@@ -61,6 +62,9 @@ fig1, axes1 = plt.subplots(len(variables), 1, figsize=(10, 3*len(variables)),
                            squeeze=False, constrained_layout=True, sharex=True, sharey=False)
 RANS_data = get_yaw('RANS')
 LES_data = get_yaw('LES')
+print(LES_data)
+LES_data = LES_data[LES_data[r"$\alpha$"] % 10 != 0]
+print(LES_data)
 for it in range(len(variables)):
     quantity = variables[it]
     plot_yaw(axes1[it, 0], RANS_data, LES_data, quantity)
