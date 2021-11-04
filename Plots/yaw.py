@@ -62,9 +62,7 @@ fig1, axes1 = plt.subplots(len(variables), 1, figsize=(10, 3*len(variables)),
                            squeeze=False, constrained_layout=True, sharex=True, sharey=False)
 RANS_data = get_yaw('RANS')
 LES_data = get_yaw('LES')
-print(LES_data)
 LES_data = LES_data[LES_data[r"$\alpha$"] % 10 != 0]
-print(LES_data)
 for it in range(len(variables)):
     quantity = variables[it]
     plot_yaw(axes1[it, 0], RANS_data, LES_data, quantity)
