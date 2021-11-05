@@ -18,10 +18,9 @@ def mfgp(x_lf, lf, x_hf, hf):
     lf = lf.reshape(-1, 1)
     hf = hf.reshape(-1, 1)
 
-    lf_scaler = preprocessing.StandardScaler().fit(lf)
-    lf = lf_scaler.transform(lf)
-    hf_scaler = preprocessing.StandardScaler().fit(hf)
-    hf = hf_scaler.transform(hf)
+    scaler = preprocessing.StandardScaler().fit(np.concatenate((lf, hf)))
+    lf = scaler.transform(lf)
+    hf = scaler.transform(hf)
 
     gpr_hf = GaussianProcessRegressor(kernel=RBF(), n_restarts_optimizer=2000).fit(x_hf, hf)
     gpr_lf = GaussianProcessRegressor(kernel=RBF(), n_restarts_optimizer=200).fit(x_lf, lf)  # convergence warning
@@ -36,11 +35,11 @@ def mfgp(x_lf, lf, x_hf, hf):
     l2_test = np.hstack((x, pred_lf_mean))
     pred_mf_mean, pred_mf_std = gpr_mf_l2.predict(l2_test, return_std=True)
 
-    pred_lf_mean = lf_scaler.inverse_transform(pred_lf_mean)
-    pred_hf_mean = hf_scaler.inverse_transform(pred_hf_mean)
-    pred_mf_mean = hf_scaler.inverse_transform(pred_mf_mean)
-    pred_lf_std *= lf_scaler.scale_
-    pred_hf_std *= hf_scaler.scale_
-    pred_mf_std *= hf_scaler.scale_
+    pred_lf_mean = scaler.inverse_transform(pred_lf_mean)
+    pred_hf_mean = scaler.inverse_transform(pred_hf_mean)
+    pred_mf_mean = scaler.inverse_transform(pred_mf_mean)
+    pred_lf_std *= scaler.scale_
+    pred_hf_std *= scaler.scale_
+    pred_mf_std *= scaler.scale_
 
     return x, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std
