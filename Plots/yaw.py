@@ -22,16 +22,16 @@ def get_yaw(model):
     path = f"{model}/Yaw/"
     cd1 = np.zeros(numcases)
     cd2 = np.zeros(numcases)
-    # recirc = np.zeros(numcases)
+    recirc = np.zeros(numcases)
     alpha = np.zeros(numcases)
     for i in range(numcases):
         case = os.path.join(path, case_settings[i]["Name"])
         alpha[i] = case_settings[i]["FlowAngle"]
         cd1[i] = forces.get_cd(case, 'cube1')
         cd2[i] = forces.get_cd(case, 'cube2')
-        # recirc[i] = cf.recirculation(case)
-        # print(recirc[i])
-    data = {r'$\alpha$': alpha, r'$Cd_1$': cd1, r'$Cd_2$': cd2}
+        if model == 'RANS':
+            recirc[i] = cf.recirculation(case)
+    data = {r'$\alpha$': alpha, r'$Cd_1$': cd1, r'$Cd_2$': cd2, r'$A_{recirc}$': recirc}
     df = pd.DataFrame(data=data)
     return df
 
@@ -58,6 +58,7 @@ def plot_yaw(ax, rans, les, variable):
     ax.legend(frameon=False, ncol=2)
 
 
+variables = [r'$Cd_1$', r'$Cd_2$', r'$A_{recirc}$']
 variables = [r'$Cd_1$', r'$Cd_2$']
 fig1, axes1 = plt.subplots(len(variables), 1, figsize=(10, 3*len(variables)),
                            squeeze=False, constrained_layout=True, sharex='all', sharey='none')

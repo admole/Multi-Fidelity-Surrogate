@@ -23,13 +23,27 @@ def get_cf(case, u_inf=1, surface="zNormal"):
 
 def recirculation(case):
     data = get_cf(case, surface="walls")
-    print(np.shape(data['x']))
-    print(np.shape(data['z']))
-    print(np.shape(data['cfx']))
-    df.sort_values(by=['col1', 'col2'])
+    fig, ax = plt.subplots(1, 1, figsize=(7, 3), squeeze=False, constrained_layout=True)
+    contour = ax[0, 0].tricontour(data['x'], data['z'], data['cfx'], levels=[0])
+    contour = contour.collections[0]
+    vs = contour.get_paths()[0].vertices
+    recirc_area = contour_area(vs)
+    plt.close(fig)
+    return recirc_area
 
-    recirc_int = np.trapz(np.trapz(data['cfx'], data['z']), data['x'])
-    return recirc_int
+
+# Use Green's theorem to compute the area
+# enclosed by the given contour.
+def contour_area(vs):
+    a = 0
+    x0, y0 = vs[0]
+    for [x1, y1] in vs[1:]:
+        dx = x1-x0
+        dy = y1-y0
+        a += 0.5*(y0*dx - x0*dy)
+        x0 = x1
+        y0 = y1
+    return a
 
 
 def plot_cf(case, ax):
