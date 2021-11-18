@@ -20,17 +20,15 @@ def mfgp(x_lf, lf, x_hf, hf):
     hf = hf.reshape(-1, 1)
 
     k_lf = RBF()
-    # k_lf = RationalQuadratic()
 
     gpr_lf = GaussianProcessRegressor(kernel=k_lf, n_restarts_optimizer=200, normalize_y=True).fit(x_lf, lf)
     pprint.pprint(gpr_lf.kernel_.get_params())
-    length = gpr_lf.kernel_.get_params()['length_scale']
-    k_hf = RBF(length, length_scale_bounds='fixed')
+    k_hf = RBF()
     gpr_hf = GaussianProcessRegressor(kernel=k_hf, n_restarts_optimizer=2000, normalize_y=True).fit(x_hf, hf)
 
     l1mean = gpr_lf.predict(x_hf)
     l2_train = np.hstack((x_hf, l1mean))
-    k_mf = k_hf  # * k_hf + k_hf
+    k_mf = k_hf * k_hf + k_hf
     gpr_mf_l2 = GaussianProcessRegressor(kernel=k_mf, n_restarts_optimizer=200, normalize_y=True).fit(l2_train, hf)
 
     pred_hf_mean, pred_hf_std = gpr_hf.predict(x, return_std=True)
