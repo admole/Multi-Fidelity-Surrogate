@@ -1,6 +1,6 @@
 import numpy as np
 from matplotlib import pyplot as plt
-import mfGP
+import mfRegression as mfr
 
 np.random.seed(2)
 
@@ -26,10 +26,7 @@ X_hf = np.random.permutation(X_lf)[0:Nhf]
 
 X_hf[0] = 0.81
 
-X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = mfGP.mfgp(X_lf,
-                                                                                               lf(X_lf),
-                                                                                               X_hf,
-                                                                                               hf(X_hf))
+X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = mfr.mfgp(X_lf, lf(X_lf), X_hf, hf(X_hf))
 
 # Plotting --
 
