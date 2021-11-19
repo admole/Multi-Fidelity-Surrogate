@@ -43,12 +43,19 @@ def mfgp(x_lf, lf, x_hf, hf):
 def mfmlp(x_lf, lf, x_hf, hf):
     from sklearn.neural_network import MLPRegressor
     import numpy as np
+    from sklearn.preprocessing import MinMaxScaler
 
     xmin = min(min(x_lf), min(x_hf))
     xmax = max(max(x_lf), max(x_hf))
     x = np.linspace(xmin, xmax, 1000)[:, np.newaxis]
     x_lf = x_lf.reshape(-1, 1)
     x_hf = x_hf.reshape(-1, 1)
+    scaler = MinMaxScaler()
+    scaler.fit(x)
+    x_lf = scaler.transform(x_lf)
+    x_hf = scaler.transform(x_hf)
+    x = scaler.transform(x)
+
     lf = lf.T
     hf = hf.T
     lf = lf.reshape(-1, 1)
@@ -93,5 +100,7 @@ def mfmlp(x_lf, lf, x_hf, hf):
     pred_lf_std = np.zeros(len(pred_lf_mean))
     pred_hf_std = np.zeros(len(pred_hf_mean))
     pred_mf_std = np.zeros(len(pred_mf_mean))
+
+    x = scaler.inverse_transform(x)
 
     return x, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std
