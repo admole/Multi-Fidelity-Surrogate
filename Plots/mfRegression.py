@@ -42,6 +42,7 @@ def mfgp(x_lf, lf, x_hf, hf):
 
 def mfmlp(x_lf, lf, x_hf, hf):
     from sklearn.neural_network import MLPRegressor
+    from sklearn.ensemble import StackingRegressor
     import numpy as np
     from sklearn.preprocessing import MinMaxScaler
 
@@ -62,8 +63,8 @@ def mfmlp(x_lf, lf, x_hf, hf):
     hf = hf.reshape(-1, 1)
 
     solver = 'lbfgs'
-    activation = 'relu'
-    hidden_layers = (100)
+    activation = 'tanh'
+    hidden_layers = (20, 50, 20)
 
     mlpr_lf = MLPRegressor(activation=activation,
                            hidden_layer_sizes=hidden_layers,
@@ -81,12 +82,25 @@ def mfmlp(x_lf, lf, x_hf, hf):
     l1mean = mlpr_lf.predict(x_hf)
     l1mean = l1mean.reshape(-1, 1)
     l2_train = np.hstack((x_hf, l1mean))
-    mlpr_mf_l2 = MLPRegressor(activation=activation,
-                              hidden_layer_sizes=hidden_layers,
-                              solver=solver,
-                              random_state=1,
-                              shuffle=True,
-                              max_iter=1000).fit(l2_train, hf)
+
+    mlpr_mf_lin = MLPRegressor(activation='identity',
+                               hidden_layer_sizes=hidden_layers,
+                               solver=solver,
+                               random_state=1,
+                               shuffle=True,
+                               alpha=0.1,
+                               max_iter=1000)
+
+    mlpr_mf_nlin = MLPRegressor(activation=activation,
+                                hidden_layer_sizes=hidden_layers,
+                                solver=solver,
+                                random_state=1,
+                                shuffle=True,
+                                alpha=0.0001,
+                                max_iter=1000)
+
+    models = [('lin', mlpr_mf_lin), ('nlin', mlpr_mf_nlin)]
+    stacking = StackingRegressor(estimators=models, cv=4, passthrough=True).fit(l2_train, hf)
 
     pred_hf_mean = mlpr_hf.predict(x)
     pred_lf_mean = mlpr_lf.predict(x)
@@ -94,7 +108,7 @@ def mfmlp(x_lf, lf, x_hf, hf):
     pred_lf_mean = pred_lf_mean.reshape(-1, 1)
     pred_hf_mean = pred_hf_mean.reshape(-1, 1)
     l2_test = np.hstack((x, pred_lf_mean))
-    pred_mf_mean = mlpr_mf_l2.predict(l2_test)
+    pred_mf_mean = stacking.predict(l2_test)
     pred_mf_mean = pred_mf_mean.reshape(-1, 1)
 
     pred_lf_std = np.zeros(len(pred_lf_mean))
