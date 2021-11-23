@@ -1,6 +1,8 @@
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.widgets import Slider
 import mfRegression as mfr
+import fonts
 
 np.random.seed(2)
 
@@ -10,9 +12,9 @@ def hf(x):
     return 1.8 * np.sin(8.0 * np.pi * x) * 2 * x
 
 
-def lf(x):
+def lf(x, c1, c2):
     # return np.sin(8.0*np.pi*x)*x
-    return np.sin(8.0 * np.pi * x) * x
+    return 1.8 * np.sin(8.0 * np.pi * (x+c1)) * 2 * x * c2
 
 
 X = np.linspace(0, 1, 1000)
@@ -26,38 +28,92 @@ X_hf = np.random.permutation(X_lf)[0:Nhf]
 
 X_hf[0] = 0.81
 
-X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = mfr.mfgp(X_lf, lf(X_lf), X_hf, hf(X_hf))
+c1 = 0
+c2 = 1
+
+X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = mfr.mfmlp(X_lf,
+                                                                                               lf(X_lf, c1, c2),
+                                                                                               X_hf,
+                                                                                               hf(X_hf))
 
 # Plotting --
 
-fig, axs = plt.subplots(4)
+legend_location = (1, 1)
+model = 'GP Mean'
+model = 'MLP'
+
+fig, axs = plt.subplots(5, figsize=(12, 12), constrained_layout=True, sharex='none', sharey='none')
 axs[0].plot(X, hf(X), label="High Fidelity / Exact")
 
-axs[0].plot(X_lf, lf(X_lf), 'bo', label="Low fidelity samples")
+lf_scatter, = axs[0].plot(X_lf, lf(X_lf, c1, c2), 'bo', label="Low fidelity samples")
 axs[0].plot(X_hf, hf(X_hf), 'ro', label="High fidelity samples")
 
-axs[0].legend(bbox_to_anchor=(0.9, 1), loc='upper left', fontsize='x-small')
+axs[0].legend(bbox_to_anchor=legend_location, loc='upper left')
 
 axs[1].plot(X, hf(X), label="High Fidelity / Exact")
-axs[1].plot(X, pred_hf_mean, 'k', lw=3, label="GP mean (trained on red dots)")
+axs[1].plot(X, pred_hf_mean, 'k', lw=3, label=f"{model} \n(trained on red dots)")
 axs[1].plot(X_hf, hf(X_hf), 'ro', label="High fidelity samples")
 axs[1].fill_between(X[:, 0], pred_hf_mean[:, 0] - 2 * pred_hf_std, pred_hf_mean[:, 0] + 2 * pred_hf_std, alpha=0.2,
                     color='k', label="+/- 2 std")
-axs[1].legend(bbox_to_anchor=(0.9, 1), loc='upper left', fontsize='x-small')
+axs[1].legend(bbox_to_anchor=legend_location, loc='upper left')
 
 axs[2].plot(X, hf(X), label="High Fidelity / Exact")
-axs[2].plot(X, pred_lf_mean, 'k', lw=3, label="GP mean (trained on blue dots)")
-axs[2].plot(X_lf, lf(X_lf), 'bo', label="Low fidelity samples")
+lf_prediction_line, = axs[2].plot(X, pred_lf_mean, 'k', lw=3, label=f"{model} \n(trained on blue dots)")
+lf_scatter2, = axs[2].plot(X_lf, lf(X_lf, c1, c2), 'bo', label="Low fidelity samples")
 axs[2].fill_between(X[:, 0], pred_lf_mean[:, 0] - 2 * pred_lf_std, pred_lf_mean[:, 0] + 2 * pred_lf_std, alpha=0.2,
                     color='k', label="+/- 2 std")
-axs[2].legend(bbox_to_anchor=(0.9, 1), loc='upper left', fontsize='x-small')
+axs[2].legend(bbox_to_anchor=legend_location, loc='upper left')
 
 axs[3].plot(X, hf(X), label="High Fidelity / Exact")
-axs[3].plot(X, pred_mf_mean, 'k', lw=3, label="Deep GP mean (trained on all dots)")
+mf_prediction_line, = axs[3].plot(X, pred_mf_mean, 'k', lw=3, label=f"Deep {model} \n(trained on all dots)")
 axs[3].fill_between(X[:, 0], pred_mf_mean[:, 0] - 2 * pred_mf_std, pred_mf_mean[:, 0] + 2 * pred_mf_std, alpha=0.2,
                     color='k', label="+/- 2 std")
-axs[3].legend(bbox_to_anchor=(0.9, 1), loc='upper left', fontsize='x-small')
+axs[3].legend(bbox_to_anchor=legend_location, loc='upper left')
 
-fig.text(0.5, 0.03, '$x$', ha='center')
-fig.text(0.03, 0.5, '$y=f(x)$', va='center', rotation='vertical')
+axs[3].set_xlabel('$x$')
+for i in range(4):
+    axs[i].set_ylabel('$y=f(x)$')
+# only works with plt version 3.4+ (requires python3.7+)
+# fig.supxlabel('$x$')
+# fig.supylabel('$y=f(x)$')
+
+
+# correlation_3dline, = ax[4].plot3D(pred_lf_mean[:, 0], pred_mf_mean[:, 0], X[:, 0], 'gray')
+# ax1.set_xlabel(r"$y_{lf}$")
+# ax1.set_ylabel(r"$y_{hf}$")
+# ax1.set_zlabel(r"$x$")
+
+correlation_line2, = axs[4].plot(pred_lf_mean[:, 0], pred_hf_mean[:, 0], label='Exact')
+correlation_line, = axs[4].plot(pred_lf_mean[:, 0], pred_mf_mean[:, 0], 'k', lw=3, label=f'Deep {model}')
+axs[4].set_xlabel(r"$y_{lf}$")
+axs[4].set_ylabel(r"$y_{hf}$")
+axs[4].legend()
+
+
+fig.text(0.78, 0.16, r'$f(x)_{lf} = c_2 f(x+c_1)_{hf}$')
+axc1 = plt.axes([0.8, 0.12, 0.15, 0.03])
+sc1 = Slider(axc1, 'c1', 0, 0.25, valinit=c1)
+axc2 = plt.axes([0.8, 0.08, 0.15, 0.03])
+sc2 = Slider(axc2, 'c2', 0, 2.0, valinit=c2)
+
+
+def update(val):
+    X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = mfr.mfmlp(X_lf,
+                                                                                                   lf(X_lf,
+                                                                                                      sc1.val,
+                                                                                                      sc2.val),
+                                                                                                   X_hf,
+                                                                                                   hf(X_hf))
+    correlation_line.set_data(pred_lf_mean[:, 0], pred_mf_mean[:, 0])
+    correlation_line2.set_data(pred_lf_mean[:, 0], hf(X))
+    # correlation_3dline.set_data(pred_lf_mean[:, 0], pred_mf_mean[:, 0], X[:, 0])
+    lf_scatter.set_data(X_lf, lf(X_lf, sc1.val, sc2.val))
+    lf_scatter2.set_data(X_lf, lf(X_lf, sc1.val, sc2.val))
+    lf_prediction_line.set_data(X, pred_lf_mean)
+    mf_prediction_line.set_data(X, pred_mf_mean)
+
+
+sc1.on_changed(update)
+sc2.on_changed(update)
+
 plt.show()
