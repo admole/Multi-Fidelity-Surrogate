@@ -29,14 +29,14 @@ def get_yaw(model):
         alpha[i] = case_settings[i]["FlowAngle"]
         cd1[i] = forces.get_cd(case, 'cube1')
         cd2[i] = forces.get_cd(case, 'cube2')
-        if model == 'RANS':
+        if model == 'remove':
             recirc[i] = cf.recirculation(case)
     data = {r'$\alpha$': alpha, r'$Cd_1$': cd1, r'$Cd_2$': cd2, r'$A_{recirc}$': recirc}
     df = pd.DataFrame(data=data)
     return df
 
 
-def plot_yaw(ax, rans, les, variable):
+def plot_yaw(ax, ax2, rans, les, variable):
     les_train = les[les[r"$\alpha$"] % 10 == 0]
     ax.scatter(rans[r'$\alpha$'], rans[variable], c='r', label=f'RANS Sample')
     alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = mfr.mfmlp(rans[r'$\alpha$'].to_numpy(),
@@ -59,16 +59,22 @@ def plot_yaw(ax, rans, les, variable):
     ax.set_xlim(0, max(alpha))
     ax.legend(frameon=False, ncol=2)
 
+    ax2.plot(rans_mean, les_mean, 'b', label='LES Only')
+    ax2.plot(rans_mean, mf_mean, 'k', label='Multi-fidelity')
+    if ax2 == axes1[-1, 1]:
+        ax2.set_xlabel(f'Low Fidelity')
+    ax2.legend(frameon=False)
 
 variables = [r'$Cd_1$', r'$Cd_2$', r'$A_{recirc}$']
 variables = [r'$Cd_1$', r'$Cd_2$']
-fig1, axes1 = plt.subplots(len(variables), 1, figsize=(10, 3*len(variables)),
-                           squeeze=False, constrained_layout=True, sharex='all', sharey='none')
+fig1, axes1 = plt.subplots(len(variables), 2, figsize=(15, 3*len(variables)),
+                           squeeze=False, constrained_layout=True, sharex='col', sharey='none',
+                           gridspec_kw={'width_ratios': [2, 1]})
 RANS_data = get_yaw('RANS')
 LES_data = get_yaw('LES')
 for it in range(len(variables)):
     quantity = variables[it]
-    plot_yaw(axes1[it, 0], RANS_data, LES_data, quantity)
+    plot_yaw(axes1[it, 0], axes1[it, 1], RANS_data, LES_data, quantity)
 
 plt.show()
 # fig1.savefig('figures/Ubulk_time.pdf', bbox_inches='tight')
