@@ -27,16 +27,16 @@ def mfgp(x_lf, lf, x_hf, hf):
     gpr_hf = GaussianProcessRegressor(kernel=k_hf, n_restarts_optimizer=2000, normalize_y=True).fit(x_hf, hf)
 
     l1mean = gpr_lf.predict(x_hf)
-    l1mean_shift1 = gpr_lf.predict(x_hf+0.04)
-    l1mean_shift2 = gpr_lf.predict(x_hf+0.08)
+    l1mean_shift1 = gpr_lf.predict(x_hf+0.02)
+    l1mean_shift2 = gpr_lf.predict(x_hf-0.02)
     l2_train = np.hstack((x_hf, l1mean, l1mean_shift1, l1mean_shift2))
     k_mf = k_hf * k_hf + k_hf
     gpr_mf_l2 = GaussianProcessRegressor(kernel=k_mf, n_restarts_optimizer=200, normalize_y=True).fit(l2_train, hf)
 
     pred_hf_mean, pred_hf_std = gpr_hf.predict(x, return_std=True)
     pred_lf_mean, pred_lf_std = gpr_lf.predict(x, return_std=True)
-    pred_lf_mean_shift1, pred_lf_std_shift1 = gpr_lf.predict(x+0.04, return_std=True)
-    pred_lf_mean_shift2, pred_lf_std_shift2 = gpr_lf.predict(x+0.08, return_std=True)
+    pred_lf_mean_shift1, pred_lf_std_shift1 = gpr_lf.predict(x+0.02, return_std=True)
+    pred_lf_mean_shift2, pred_lf_std_shift2 = gpr_lf.predict(x-0.02, return_std=True)
 
     l2_test = np.hstack((x, pred_lf_mean, pred_lf_mean_shift1, pred_lf_mean_shift2))
     pred_mf_mean, pred_mf_std = gpr_mf_l2.predict(l2_test, return_std=True)
@@ -66,11 +66,17 @@ def mfmlp(x_lf, lf, x_hf, hf):
     lf = lf.reshape(-1, 1)
     hf = hf.reshape(-1, 1)
 
+    datascaler = MinMaxScaler()
+    datascaler.fit(lf)
+    lf = datascaler.transform(lf)
+    hf = datascaler.transform(hf)
+    print(np.min(lf), np.max(lf))
+
     solver = 'lbfgs'
     activation = 'tanh'
     # activation = 'relu'
     hidden_layers = (20, 50, 20)
-    hidden_layers = (20, 20)
+    hidden_layers = (20, 20, 20, 20)
 
     mlpr_lf = MLPRegressor(activation=activation,
                            hidden_layer_sizes=hidden_layers,
@@ -84,10 +90,11 @@ def mfmlp(x_lf, lf, x_hf, hf):
                            max_iter=1000).fit(x_hf, hf)
 
     l1mean = mlpr_lf.predict(x_hf).reshape(-1, 1)
-    l1mean_shift1 = mlpr_lf.predict(x_hf+0.04).reshape(-1, 1)
-    l1mean_shift2 = mlpr_lf.predict(x_hf+0.08).reshape(-1, 1)
+    l1mean_shift1 = mlpr_lf.predict(x_hf+0.02).reshape(-1, 1)
+    l1mean_shift2 = mlpr_lf.predict(x_hf-0.02).reshape(-1, 1)
     # l2_train = np.hstack((x_hf, l1mean))
     l2_train = np.hstack((x_hf, l1mean, l1mean_shift1, l1mean_shift2))
+    # l2_train = np.hstack((x_hf, l1mean))
 
     mlpr_mf_nlin = MLPRegressor(activation=activation,
                                 hidden_layer_sizes=hidden_layers,
@@ -98,10 +105,11 @@ def mfmlp(x_lf, lf, x_hf, hf):
 
     pred_hf_mean = mlpr_hf.predict(x).reshape(-1, 1)
     pred_lf_mean = mlpr_lf.predict(x).reshape(-1, 1)
-    pred_lf_mean_shift1 = mlpr_lf.predict(x+0.04).reshape(-1, 1)
-    pred_lf_mean_shift2 = mlpr_lf.predict(x+0.08).reshape(-1, 1)
+    pred_lf_mean_shift1 = mlpr_lf.predict(x+0.02).reshape(-1, 1)
+    pred_lf_mean_shift2 = mlpr_lf.predict(x-0.02).reshape(-1, 1)
 
     l2_test = np.hstack((x, pred_lf_mean, pred_lf_mean_shift1, pred_lf_mean_shift2))
+    # l2_test = np.hstack((x, pred_lf_mean))
     pred_mf_mean = mlpr_mf_nlin.predict(l2_test)
     pred_mf_mean = pred_mf_mean.reshape(-1, 1)
 
@@ -110,5 +118,8 @@ def mfmlp(x_lf, lf, x_hf, hf):
     pred_mf_std = np.zeros(len(pred_mf_mean))
 
     x = scaler.inverse_transform(x)
+    pred_lf_mean = datascaler.inverse_transform(pred_lf_mean)
+    pred_hf_mean = datascaler.inverse_transform(pred_hf_mean)
+    pred_mf_mean = datascaler.inverse_transform(pred_mf_mean)
 
     return x, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std
