@@ -6,9 +6,17 @@ import fonts
 
 np.random.seed(2)
 
-
 Func = "Sine"
-extraX = False
+Func = "Step"
+
+model = 'GP Mean'
+model = 'MLP'
+
+if Func == "Step":
+    extraX = True
+else:
+    extraX = False
+
 
 def hf(x):
     if Func == "Sine":
@@ -23,7 +31,7 @@ def hf(x):
 
 
 def lf(x, c1, c2, c3):
-    y = c1*hf(x+c2)+c3 + 2*x
+    y = c1*hf(x+c2)+c3
     return y
 
 
@@ -53,8 +61,6 @@ X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_s
 # Plotting --
 
 legend_location = (1, 1)
-model = 'GP Mean'
-model = 'MLP'
 
 fig, axs = plt.subplots(5, figsize=(12, 8), constrained_layout=True, sharex='none', sharey='none')
 axs[0].plot(X, hf(X), label="High Fidelity / Exact")
