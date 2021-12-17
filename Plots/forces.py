@@ -29,6 +29,12 @@ def get_cd(case, cube):
     return cd
 
 
+def get_cl(case, cube):
+    forces = get_forces(case, cube)
+    cl = np.mean(forces['Cl'].tail(500))
+    return cl
+
+
 def plot_forces(case, ax):
     data1 = get_forces(case, 'cube1')
     data2 = get_forces(case, 'cube2')

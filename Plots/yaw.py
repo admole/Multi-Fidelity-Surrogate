@@ -22,16 +22,23 @@ def get_yaw(model):
     path = f"{model}/Yaw/"
     cd1 = np.zeros(numcases)
     cd2 = np.zeros(numcases)
+    cl1 = np.zeros(numcases)
+    cl2 = np.zeros(numcases)
     recirc = np.zeros(numcases)
     alpha = np.zeros(numcases)
     for i in range(numcases):
         case = os.path.join(path, case_settings[i]["Name"])
         alpha[i] = case_settings[i]["FlowAngle"]
         cd1[i] = forces.get_cd(case, 'cube1')
+        cl1[i] = forces.get_cl(case, 'cube1')
         cd2[i] = forces.get_cd(case, 'cube2')
+        cl2[i] = forces.get_cl(case, 'cube2')
         if model == 'remove':
             recirc[i] = cf.recirculation(case)
-    data = {r'$\alpha$': alpha, r'$Cd_1$': cd1, r'$Cd_2$': cd2, r'$A_{recirc}$': recirc}
+    data = {r'$\alpha$': alpha,
+            r'$Cd_1$': cd1, r'$Cl_1$': cl1,
+            r'$Cd_2$': cd2, r'$Cl_2$': cl2,
+            r'$A_{recirc}$': recirc}
     df = pd.DataFrame(data=data)
     return df
 
@@ -67,6 +74,9 @@ def plot_yaw(ax, ax2, rans, les, variable):
 
 variables = [r'$Cd_1$', r'$Cd_2$', r'$A_{recirc}$']
 variables = [r'$Cd_1$', r'$Cd_2$']
+variables = [r'$Cd_1$', r'$Cl_1$', r'$Cd_2$', r'$Cl_2$']
+variables = [r'$Cd_2$', r'$Cl_2$']
+
 fig1, axes1 = plt.subplots(len(variables), 2, figsize=(15, 3*len(variables)),
                            squeeze=False, constrained_layout=True, sharex='col', sharey='none',
                            gridspec_kw={'width_ratios': [2, 1]})
