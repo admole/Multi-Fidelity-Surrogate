@@ -62,7 +62,7 @@ X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_s
 
 legend_location = (1, 1)
 
-fig, axs = plt.subplots(5, figsize=(12, 8), constrained_layout=True, sharex='none', sharey='none')
+fig, axs = plt.subplots(5, figsize=(12, 11), constrained_layout=True, sharex='none', sharey='none')
 axs[0].plot(X, hf(X), label="High Fidelity / Exact")
 
 lf_scatter, = axs[0].plot(X_lf, lf(X_lf, c1, c2, c3), 'bo', label="Low fidelity samples")
@@ -73,21 +73,21 @@ axs[0].legend(bbox_to_anchor=legend_location, loc='upper left')
 axs[1].plot(X, hf(X), label="High Fidelity / Exact")
 axs[1].plot(X, pred_hf_mean, 'k', lw=3, label=f"{model} \n(trained on red dots)")
 axs[1].plot(X_hf, hf(X_hf), 'ro', label="High fidelity samples")
-axs[1].fill_between(X[:, 0], pred_hf_mean[:, 0] - 2 * pred_hf_std, pred_hf_mean[:, 0] + 2 * pred_hf_std, alpha=0.2,
-                    color='k', label="+/- 2 std")
+# axs[1].fill_between(X[:, 0], pred_hf_mean[:, 0] - 2 * pred_hf_std, pred_hf_mean[:, 0] + 2 * pred_hf_std, alpha=0.2,
+#                     color='k', label="+/- 2 std")
 axs[1].legend(bbox_to_anchor=legend_location, loc='upper left')
 
 axs[2].plot(X, hf(X), label="High Fidelity / Exact")
 lf_prediction_line, = axs[2].plot(X, pred_lf_mean, 'k', lw=3, label=f"{model} \n(trained on blue dots)")
 lf_scatter2, = axs[2].plot(X_lf, lf(X_lf, c1, c2, c3), 'bo', label="Low fidelity samples")
-axs[2].fill_between(X[:, 0], pred_lf_mean[:, 0] - 2 * pred_lf_std, pred_lf_mean[:, 0] + 2 * pred_lf_std, alpha=0.2,
-                    color='k', label="+/- 2 std")
+# axs[2].fill_between(X[:, 0], pred_lf_mean[:, 0] - 2 * pred_lf_std, pred_lf_mean[:, 0] + 2 * pred_lf_std, alpha=0.2,
+#                     color='k', label="+/- 2 std")
 axs[2].legend(bbox_to_anchor=legend_location, loc='upper left')
 
 axs[3].plot(X, hf(X), label="High Fidelity / Exact")
 mf_prediction_line, = axs[3].plot(X, pred_mf_mean, 'k', lw=3, label=f"Deep {model} \n(trained on all dots)")
-axs[3].fill_between(X[:, 0], pred_mf_mean[:, 0] - 2 * pred_mf_std, pred_mf_mean[:, 0] + 2 * pred_mf_std, alpha=0.2,
-                    color='k', label="+/- 2 std")
+# axs[3].fill_between(X[:, 0], pred_mf_mean[:, 0] - 2 * pred_mf_std, pred_mf_mean[:, 0] + 2 * pred_mf_std, alpha=0.2,
+#                     color='k', label="+/- 2 std")
 axs[3].legend(bbox_to_anchor=legend_location, loc='upper left')
 
 axs[3].set_xlabel('$x$')
@@ -110,12 +110,12 @@ axs[4].set_ylabel(r"$y_{hf}$")
 axs[4].legend()
 
 
-fig.text(0.78, 0.16, r'$f(x)_{lf} = c_1 f(x+c_2)_{hf} + c_3$')
-axc1 = plt.axes([0.8, 0.12, 0.15, 0.03])
+fig.text(0.75, 0.18, r'$f(x)_{lf} = c_1 f(x+c_2)_{hf} + c_3$')
+axc1 = plt.axes([0.8, 0.14, 0.15, 0.03])
 sc1 = Slider(axc1, 'c1', -1, 2, valinit=c1)
-axc2 = plt.axes([0.8, 0.08, 0.15, 0.03])
+axc2 = plt.axes([0.8, 0.1, 0.15, 0.03])
 sc2 = Slider(axc2, 'c2', -0.5, 0.5, valinit=c2)
-axc3 = plt.axes([0.8, 0.04, 0.15, 0.03])
+axc3 = plt.axes([0.8, 0.06, 0.15, 0.03])
 sc3 = Slider(axc3, 'c3', -10, 10, valinit=c3)
 
 

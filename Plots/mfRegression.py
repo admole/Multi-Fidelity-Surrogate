@@ -91,7 +91,7 @@ def mfmlp(x_lf, lf, x_hf, hf):
 
     l1mean = mlpr_lf.predict(x_hf).reshape(-1, 1)
     l1mean_shift1 = mlpr_lf.predict(x_hf+0.02).reshape(-1, 1)
-    l1mean_shift2 = mlpr_lf.predict(x_hf-0.02).reshape(-1, 1)
+    l1mean_shift2 = mlpr_lf.predict(x_hf+0.04).reshape(-1, 1)
     # l2_train = np.hstack((x_hf, l1mean))
     l2_train = np.hstack((x_hf, l1mean, l1mean_shift1, l1mean_shift2))
     # l2_train = np.hstack((x_hf, l1mean))
@@ -106,7 +106,7 @@ def mfmlp(x_lf, lf, x_hf, hf):
     pred_hf_mean = mlpr_hf.predict(x).reshape(-1, 1)
     pred_lf_mean = mlpr_lf.predict(x).reshape(-1, 1)
     pred_lf_mean_shift1 = mlpr_lf.predict(x+0.02).reshape(-1, 1)
-    pred_lf_mean_shift2 = mlpr_lf.predict(x-0.02).reshape(-1, 1)
+    pred_lf_mean_shift2 = mlpr_lf.predict(x+0.04).reshape(-1, 1)
 
     l2_test = np.hstack((x, pred_lf_mean, pred_lf_mean_shift1, pred_lf_mean_shift2))
     # l2_test = np.hstack((x, pred_lf_mean))
