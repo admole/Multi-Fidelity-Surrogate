@@ -66,6 +66,8 @@ else:
 # Plotting --
 
 error_mf = sum(abs(pred_mf_mean - hf(X)) * (X[1] - X[0]))
+error_lf = sum(abs(pred_lf_mean - hf(X)) * (X[1] - X[0]))
+error_hf = sum(abs(pred_hf_mean - hf(X)) * (X[1] - X[0]))
 
 legend_location = (1, 1)
 
@@ -133,13 +135,19 @@ sc3 = Slider(axc3, 'c3', c3range[0], c3range[1], valinit=c3)
 
 
 fig2, axs2 = plt.subplots(3, figsize=(12, 11), constrained_layout=True, sharex='none', sharey='none')
-error_scatter1, = axs2[0].plot(c1, error_mf, 'ko')
+mf_error_scatter1, = axs2[0].plot(c1, error_mf, 'ko')
+lf_error_scatter1, = axs2[0].plot(c1, error_lf, 'bo')
+hf_error_scatter1, = axs2[0].plot(c1, error_hf, 'ro')
 axs2[0].set_xlim(c1range[0], c1range[1])
 axs2[0].set_ylim(0, 1)
-error_scatter2, = axs2[1].plot(c2, error_mf, 'ko')
+mf_error_scatter2, = axs2[1].plot(c2, error_mf, 'ko')
+lf_error_scatter2, = axs2[1].plot(c2, error_lf, 'bo')
+hf_error_scatter2, = axs2[1].plot(c2, error_hf, 'ro')
 axs2[1].set_xlim(c2range[0], c2range[1])
 axs2[1].set_ylim(0, 1)
-error_scatter3, = axs2[2].plot(c3, error_mf, 'ko')
+mf_error_scatter3, = axs2[2].plot(c3, error_mf, 'ko')
+lf_error_scatter3, = axs2[2].plot(c3, error_lf, 'bo')
+hf_error_scatter3, = axs2[2].plot(c3, error_hf, 'ro')
 axs2[2].set_xlim(c3range[0], c3range[1])
 axs2[2].set_ylim(0, 1)
 
@@ -162,11 +170,19 @@ def update(val):
                                                                                                        X_hf,
                                                                                                        hf(X_hf))
 
-    error = sum(abs(pred_mf_mean - hf(X)) * (X[1] - X[0]))
+    error_mf = sum(abs(pred_mf_mean - hf(X)) * (X[1] - X[0]))
+    error_lf = sum(abs(pred_lf_mean - hf(X)) * (X[1] - X[0]))
+    error_hf = sum(abs(pred_hf_mean - hf(X)) * (X[1] - X[0]))
 
-    error_scatter1.set_data(np.concatenate((error_scatter1.get_xdata(), np.array([sc1.val]))), np.concatenate((error_scatter1.get_ydata(), error)))
-    error_scatter2.set_data(np.concatenate((error_scatter2.get_xdata(), np.array([sc2.val]))), np.concatenate((error_scatter2.get_ydata(), error)))
-    error_scatter3.set_data(np.concatenate((error_scatter3.get_xdata(), np.array([sc3.val]))), np.concatenate((error_scatter3.get_ydata(), error)))
+    mf_error_scatter1.set_data(np.concatenate((mf_error_scatter1.get_xdata(), np.array([sc1.val]))), np.concatenate((mf_error_scatter1.get_ydata(), error_mf)))
+    mf_error_scatter2.set_data(np.concatenate((mf_error_scatter2.get_xdata(), np.array([sc2.val]))), np.concatenate((mf_error_scatter2.get_ydata(), error_mf)))
+    mf_error_scatter3.set_data(np.concatenate((mf_error_scatter3.get_xdata(), np.array([sc3.val]))), np.concatenate((mf_error_scatter3.get_ydata(), error_mf)))
+    lf_error_scatter1.set_data(np.concatenate((lf_error_scatter1.get_xdata(), np.array([sc1.val]))), np.concatenate((lf_error_scatter1.get_ydata(), error_lf)))
+    lf_error_scatter2.set_data(np.concatenate((lf_error_scatter2.get_xdata(), np.array([sc2.val]))), np.concatenate((lf_error_scatter2.get_ydata(), error_lf)))
+    lf_error_scatter3.set_data(np.concatenate((lf_error_scatter3.get_xdata(), np.array([sc3.val]))), np.concatenate((lf_error_scatter3.get_ydata(), error_lf)))
+    hf_error_scatter1.set_data(np.concatenate((hf_error_scatter1.get_xdata(), np.array([sc1.val]))), np.concatenate((hf_error_scatter1.get_ydata(), error_hf)))
+    hf_error_scatter2.set_data(np.concatenate((hf_error_scatter2.get_xdata(), np.array([sc2.val]))), np.concatenate((hf_error_scatter2.get_ydata(), error_hf)))
+    hf_error_scatter3.set_data(np.concatenate((hf_error_scatter3.get_xdata(), np.array([sc3.val]))), np.concatenate((hf_error_scatter3.get_ydata(), error_hf)))
 
     correlation_line.set_data(pred_lf_mean[:, 0], pred_mf_mean[:, 0])
     correlation_line2.set_data(pred_lf_mean[:, 0], hf(X))
