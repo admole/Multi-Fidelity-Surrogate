@@ -42,31 +42,46 @@ def add_cubes(ax, normal='y'):
     ax.add_patch(cube2)
 
 
-def plot_surface(ax, data, angle):
-    magnitude = np.sqrt(data['UMean_x']**2 + data['UMean_y']**2 + data['UMean_z']**2)
+def plot_surface(ax, data, field, angle):
+    magnitude = np.sqrt(data[f'{field}_x']**2 + data[f'{field}_y']**2 + data[f'{field}_z']**2)
     # contour = ax.tricontourf(data['x'], data['z'], data['UMean_x'], cmap='seismic', levels=np.arange(-1, 1.5, 0.1))
     # contour = ax.tricontourf(data['x'], data['z'], magnitude, cmap='bwr', levels=np.arange(0, 2, 0.05))
     contour = ax.tricontourf(data['x'], data['z'], magnitude, cmap='inferno', levels=np.arange(0, 1.5, 0.05))
-    contour = ax.tricontour(data['x'], data['z'], data['UMean_x'], colors='w', linewidths=1, levels=[0])
+    contour = ax.tricontour(data['x'], data['z'], data[f'{field}_x'], colors='w', linewidths=1, levels=[0])
     ax.set_aspect('equal')
     add_cubes(ax)
     ax.set_title(r'$\theta=%i$' % angle)
 
 
 if __name__ == "__main__":
+    # RANS
+    print('Plotting RANS velocity')
     fig, axes = plt.subplots(7, 3, figsize=(12, 20), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
     for ang, i in zip(range(0, 41, 2), range(3*7)):
         print('angle', ang)
         acase = f'RANS/Yaw/a{ang}'
         velocity = get_surface(acase, field='UMean', surface='yNormal')
         plot_position = axes[int(np.floor(i/3)), int(i % 3)]
-        plot_surface(plot_position, velocity, ang)
-
+        plot_surface(plot_position, velocity, 'UMean', ang)
     for i in range(7):
         axes[i, 0].set_ylabel(r'$z$')
     for i in range(3):
         axes[-1, i].set_xlabel(r'$x$')
 
+    # LES
+    print('Plotting LES velocity')
+    fig2, axes2 = plt.subplots(7, 1, figsize=(6, 20), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
+    for ang, i in zip(range(0, 31, 5), range(1*7)):
+        print('angle', ang)
+        acase = f'LES/Yaw/a{ang}'
+        velocity = get_surface(acase, field='U', surface='yNormal')
+        plot_position = axes2[i, 0]
+        plot_surface(plot_position, velocity, 'U', ang)
+        axes2[i, 0].set_ylabel(r'$z$')
+        axes2[-1, 0].set_xlabel(r'$x$')
+
     plt.show()
-    fig.savefig('velocityslices.png', bbox_inches='tight')
+    # fig.savefig('velocityslicesRANS.png', bbox_inches='tight')
+    fig2.savefig('velocityslicesLES.png', bbox_inches='tight')
+
 
