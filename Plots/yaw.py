@@ -26,7 +26,7 @@ def get_yaw(model):
     cz1 = np.zeros(numcases)
     cz2 = np.zeros(numcases)
     recirc = np.zeros(numcases)
-    # profile = np.zeros(numcases, 2)
+    probe = np.zeros(numcases)
     alpha = np.zeros(numcases)
     for i in range(numcases):
         case = os.path.join(path, case_settings[i]["Name"])
@@ -37,13 +37,13 @@ def get_yaw(model):
         cz2[i] = forces.get_cl(case, 'cube2')
         if model == 'remove':
             recirc[i] = cf.recirculation(case)
-        # profile[i] = fields.get_line(case, position='5.0', field='UMean')
+        probe[i] = fields.get_probe(case, position=[6.0, 0.6], field='U')
 
     data = {r'$\alpha$': alpha,
             r'$Cd_1$': cd1, r'$Cz_1$': cz1,
             r'$Cd_2$': cd2, r'$Cz_2$': cz2,
-            r'$A_{recirc}$': recirc}
-            # 'Profile': profile}
+            r'$A_{recirc}$': recirc,
+            'Probe': probe}
     df = pd.DataFrame(data=data)
     return df
 
@@ -52,7 +52,7 @@ def plot_yaw(ax, ax2, rans, les, variable):
     les_train = les[les[r"$\alpha$"] % 10 == 0]
     les_test = les[les[r"$\alpha$"] % 10 != 0]
     ax.scatter(rans[r'$\alpha$'], rans[variable], edgecolors='b', facecolors='none', label=f'RANS Sample')
-    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = mfr.mfgp(rans[r'$\alpha$'].to_numpy(),
+    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = mfr.mfmlp(rans[r'$\alpha$'].to_numpy(),
                                                                                rans[variable].to_numpy(),
                                                                                les_train[r'$\alpha$'].to_numpy(),
                                                                                les_train[variable].to_numpy())
@@ -91,6 +91,7 @@ variables = [r'$Cd_1$', r'$Cd_2$', r'$A_{recirc}$']
 variables = [r'$Cd_1$', r'$Cd_2$']
 variables = [r'$Cd_1$', r'$Cz_1$', r'$Cd_2$', r'$Cz_2$']
 variables = [r'$Cd_2$', r'$Cz_2$']
+variables = [r'$Cd_2$', r'$Cz_2$', 'Probe']
 
 fig1, axes1 = plt.subplots(len(variables), 2, figsize=(15, 3*len(variables)),
                            squeeze=False, constrained_layout=True, sharex='col', sharey='none',

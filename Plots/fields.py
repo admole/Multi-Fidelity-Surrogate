@@ -28,6 +28,20 @@ def get_surface(case, u_inf=1, surface="zNormal", field="UMean"):
 
     return data
 
+def get_line(case, position, field):
+    file = glob.glob(f'../Data/{case}/postProcessing/lines/*/x{position}_*{field}*.xy')
+    file = file[0]
+    data = np.loadtxt(file)
+    return data
+
+
+def get_probe(case, position, field):
+    line = get_line(case, '%.1f' %position[0], field)
+    probe_location = np.abs(line[:,0] - position[1]).argmin()
+    probe_values = line[probe_location]
+    probe = np.linalg.norm(probe_values[-3:-1]) # magnitude of velocity vector
+    return probe
+
 
 def add_cubes(ax, normal='y'):
     if normal == 'y':
