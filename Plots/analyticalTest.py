@@ -51,7 +51,7 @@ X_hf[0] = 0.81
 
 c1 = 1
 c2 = 0
-c3 =0
+c3 = 0
 
 if model == 'MLP':
     X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = mfr.mfmlp(X_lf,
@@ -63,11 +63,12 @@ else:
                                                                                                   lf(X_lf, c1, c2, c3),
                                                                                                   X_hf,
                                                                                                   hf(X_hf))
-# Plotting --
 
 error_mf = sum(abs(pred_mf_mean - hf(X)) * (X[1] - X[0]))
 error_lf = sum(abs(pred_lf_mean - hf(X)) * (X[1] - X[0]))
 error_hf = sum(abs(pred_hf_mean - hf(X)) * (X[1] - X[0]))
+
+# Plotting --
 
 legend_location = (1, 1)
 
@@ -127,11 +128,11 @@ c3range = [-10.0, 10.0]
 
 fig.text(0.75, 0.18, r'$f(x)_{lf} = c_1 f(x+c_2)_{hf} + c_3$')
 axc1 = plt.axes([0.8, 0.14, 0.15, 0.03])
-sc1 = Slider(axc1, 'c1', c1range[0], c1range[1], valinit=c1)
+sc1 = Slider(axc1, 'c1', c1range[0], c1range[-1], valinit=c1)
 axc2 = plt.axes([0.8, 0.1, 0.15, 0.03])
-sc2 = Slider(axc2, 'c2', c2range[0], c2range[1], valinit=c2)
+sc2 = Slider(axc2, 'c2', c2range[0], c2range[-1], valinit=c2)
 axc3 = plt.axes([0.8, 0.06, 0.15, 0.03])
-sc3 = Slider(axc3, 'c3', c3range[0], c3range[1], valinit=c3)
+sc3 = Slider(axc3, 'c3', c3range[0], c3range[-1], valinit=c3)
 
 
 fig2, axs2 = plt.subplots(3, figsize=(12, 11), constrained_layout=True, sharex='none', sharey='none')
@@ -204,6 +205,10 @@ def update(val):
                                       pred_mf_mean[:, 0] + 2 * pred_mf_std, alpha=0.2,
                                       color='k', label="+/- 2 std")
 
+for c1i in np.arange(c1range[0], c1range[-1]+0.1, 0.1):
+    print(c1i)
+    sc1.val = c1i
+    update(c1i)
 
 sc1.on_changed(update)
 sc2.on_changed(update)
