@@ -22,11 +22,10 @@ def collect_profiles(model, ax):
         line = fields.get_line(file, position=4.0, field='U')
         case[i]['y'] = line[:, 0]
         case[i]['UMean'] = line[:, -3]
-        if model == 'RANS':
-            ax.plot(case[i]['UMean'], case[i]['y'], 'r')
-        else:
-
-            ax.plot(case[i]['UMean'], case[i]['y'], 'b')
+        # if model == 'RANS':
+        #     ax.plot(case[i]['UMean'], case[i]['y'], 'r')
+        # else:
+        #     ax.plot(case[i]['UMean'], case[i]['y'], 'b')
     print(f'Collected {numcases} profiles from {model}')
     return case, numcases
 
@@ -42,8 +41,8 @@ LES_Profiles, LES_ncases = collect_profiles('LES', axes1[0, 0])
 les_alpha = np.zeros(LES_ncases)
 for i, case in zip(range(LES_ncases), LES_Profiles):
     les_alpha[i] = case['FlowAngle']
-    case['UMean_interp'] = np.interp(RANS_Profiles[0]['y'],
-                                     case['y'],
+    case['UMean_interp'] = np.interp(RANS_Profiles[1]['y'],  # Using RANS y values not at alpha 0 as this case differs
+                                     case['y'],              # due to the mesh and needs to be updated
                                      case['UMean'])
 
 rans_alpha = np.zeros(RANS_ncases)
@@ -66,9 +65,16 @@ for yi in range(Nlocs):
                                                                                rans_velocity,
                                                                                les_alpha,
                                                                                les_velocity)
-    new_profile[yi] = mf_mean[100]
+    sample_angle = 4
+    angle_location = np.abs(alpha - sample_angle).argmin()
+    new_profile[yi] = mf_mean[angle_location]
+    print(f'Actual alpha = {alpha[angle_location]}')
 
-print(f'Plotting mfr profile at angle {alpha[100]}')
 
+print(f'Plotting mfr profile at angle {alpha[angle_location]}')
+
+axes1[0][0].plot(RANS_Profiles[2]['UMean'], RANS_Profiles[2]['y'], 'r')
+axes1[0][0].plot(LES_Profiles[1]['UMean'], LES_Profiles[1]['y'], 'b')
+axes1[0][0].plot(LES_Profiles[1]['UMean_interp'], RANS_Profiles[1]['y'], 'b--')
 axes1[0, 0].plot(new_profile, RANS_Profiles[1]['y'], 'k')
 plt.show()
