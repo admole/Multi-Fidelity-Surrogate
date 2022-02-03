@@ -11,6 +11,9 @@ import json
 import fields
 import mfRegression as mfr
 
+sample_angle = 4
+sample_x = 4.0
+
 
 def collect_profiles(model, ax):
     j = open(os.path.join(os.getcwd(), f"../Data/{model}/Yaw/inlet_sweep.json"))
@@ -19,18 +22,14 @@ def collect_profiles(model, ax):
     path = f"{model}/Yaw/"
     for i in range(numcases):
         file = os.path.join(path, case[i]["Name"])
-        line = fields.get_line(file, position=4.0, field='U')
+        line = fields.get_line(file, position=sample_x, field='U')
         case[i]['y'] = line[:, 0]
         case[i]['UMean'] = line[:, -3]
-        # if model == 'RANS':
-        #     ax.plot(case[i]['UMean'], case[i]['y'], 'r')
-        # else:
-        #     ax.plot(case[i]['UMean'], case[i]['y'], 'b')
     print(f'Collected {numcases} profiles from {model}')
     return case, numcases
 
 
-fig1, axes1 = plt.subplots(1, 1, figsize=(5, 10),
+fig1, axes1 = plt.subplots(1, 1, figsize=(4, 7),
                            squeeze=False, constrained_layout=True)
 
 
@@ -65,7 +64,6 @@ for yi in range(Nlocs):
                                                                                rans_velocity,
                                                                                les_alpha,
                                                                                les_velocity)
-    sample_angle = 4
     angle_location = np.abs(alpha - sample_angle).argmin()
     new_profile[yi] = mf_mean[angle_location]
     print(f'Actual alpha = {alpha[angle_location]}')
@@ -73,8 +71,14 @@ for yi in range(Nlocs):
 
 print(f'Plotting mfr profile at angle {alpha[angle_location]}')
 
-axes1[0][0].plot(RANS_Profiles[2]['UMean'], RANS_Profiles[2]['y'], 'r')
-axes1[0][0].plot(LES_Profiles[1]['UMean'], LES_Profiles[1]['y'], 'b')
+axes1[0][0].plot(RANS_Profiles[2]['UMean'], RANS_Profiles[2]['y'], 'r', label='RANS')
+axes1[0][0].plot(LES_Profiles[1]['UMean'], LES_Profiles[1]['y'], 'b', label='LES')
 axes1[0][0].plot(LES_Profiles[1]['UMean_interp'], RANS_Profiles[1]['y'], 'b--')
-axes1[0, 0].plot(new_profile, RANS_Profiles[1]['y'], 'k')
+axes1[0, 0].plot(new_profile, RANS_Profiles[1]['y'], 'k', label='MFR Model')
+axes1[0, 0].set_xlabel(r'$U/U_0$')
+axes1[0, 0].set_ylabel(r'$y/H$')
+titleText = fr'Profile at $\alpha = {sample_angle}$' + '\n' + fr'$x = {sample_x}$ and $z = 0$'
+axes1[0, 0].set_title(titleText)
+axes1[0, 0].legend(frameon=False)
+
 plt.show()
