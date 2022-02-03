@@ -50,6 +50,9 @@ for i, case in zip(range(RANS_ncases), RANS_Profiles):
     rans_alpha[i] = case['FlowAngle']
 
 
+rans_velocity_old = np.zeros(RANS_ncases)
+les_velocity_old = np.zeros(LES_ncases)
+mf_old = np.zeros(1000)
 Nlocs = len(RANS_Profiles[1]['y'])
 new_profile = np.zeros(Nlocs)
 print(Nlocs)
@@ -61,14 +64,24 @@ for yi in range(Nlocs):
     for i, case in zip(range(LES_ncases), LES_Profiles):
         les_velocity[i] = case['UMean_interp'][yi]
 
+    print(np.shape(rans_velocity))
+    print(np.shape(np.hstack((rans_velocity, rans_velocity_old))))
+    print(np.shape(np.vstack((rans_velocity, rans_velocity_old)).T))
+
     alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = mfr.mfmlp(rans_alpha,
                                                                                rans_velocity,
+                                                                               rans_velocity_old,
                                                                                les_alpha,
-                                                                               les_velocity)
+                                                                               les_velocity,
+                                                                               les_velocity_old,
+                                                                               mf_old)
     sample_angle = 4
     angle_location = np.abs(alpha - sample_angle).argmin()
     new_profile[yi] = mf_mean[angle_location]
     print(f'Actual alpha = {alpha[angle_location]}')
+    rans_velocity_old = rans_velocity
+    les_velocity_old = les_velocity
+    mf_old = mf_mean
 
 
 print(f'Plotting mfr profile at angle {alpha[angle_location]}')
