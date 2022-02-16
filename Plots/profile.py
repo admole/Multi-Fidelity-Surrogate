@@ -12,7 +12,7 @@ import fields
 import mfRegression as mfr
 
 
-def collect_profiles(model, ax, x):
+def collect_profiles(model, x):
     j = open(os.path.join(os.getcwd(), f"../Data/{model}/Yaw/inlet_sweep.json"))
     case = json.load(j)
     numcases = len(case)
@@ -26,13 +26,14 @@ def collect_profiles(model, ax, x):
     return case, numcases
 
 
-fig1, axes1 = plt.subplots(1, 1, figsize=(5, 10),
+sample_angle = 20
+sample_location = 9.0
+fig1, axes1 = plt.subplots(1, 1, figsize=(4, 6),
                            squeeze=False, constrained_layout=True)
 
 
-RANS_Profiles, RANS_ncases = collect_profiles('RANS', axes1[0, 0], 4.0)
-LES_Profiles, LES_ncases = collect_profiles('LES', axes1[0, 0], 4.0)
-sample_angle = 25
+RANS_Profiles, RANS_ncases = collect_profiles('RANS', sample_location)
+LES_Profiles, LES_ncases = collect_profiles('LES', sample_location)
 
 
 # add field for LES result interpolated onto LES mesh
@@ -49,7 +50,7 @@ for i, case in zip(range(RANS_ncases), RANS_Profiles):
 
 
 rans_velocity_old = np.zeros(RANS_ncases)
-les_velocity_old = np.zeros(4)
+les_velocity_old = np.zeros(3)
 mf_old = np.zeros(1000)
 Nlocs = len(RANS_Profiles[1]['y'])
 new_profile = np.zeros(Nlocs)
@@ -62,10 +63,10 @@ for yi in range(Nlocs):
     for i, case in zip(range(LES_ncases), LES_Profiles):
         les_velocity[i] = case['UMean_interp'][yi]
 
-    les_velocity_train = les_velocity[les_alpha % 10 == 0]
-    les_velocity_test = les_velocity[les_alpha % 10 != 0]
-    les_alpha_train = les_alpha[les_alpha % 10 == 0]
-    les_alpha_test = les_alpha[les_alpha % 10 != 0]
+    les_velocity_train = les_velocity[les_alpha % 10 != 0]
+    les_velocity_test = les_velocity[les_alpha % 10 == 0]
+    les_alpha_train = les_alpha[les_alpha % 10 != 0]
+    les_alpha_test = les_alpha[les_alpha % 10 == 0]
 
     alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = mfr.mfmlp(rans_alpha,
                                                                                rans_velocity,
@@ -84,19 +85,33 @@ for yi in range(Nlocs):
 
 print(f'Plotting mfr profile at angle {alpha[angle_location]}')
 
-axes1[0][0].plot(RANS_Profiles[5]['UMean'], RANS_Profiles[10]['y'], 'r--')
-axes1[0][0].plot(RANS_Profiles[7]['UMean'], RANS_Profiles[12]['y'], 'r', label='RANS profile')
-axes1[0][0].plot(RANS_Profiles[8]['UMean'], RANS_Profiles[13]['y'], 'r')
-axes1[0][0].plot(RANS_Profiles[10]['UMean'], RANS_Profiles[15]['y'], 'r--')
+rans_loc_f = int(np.floor(sample_angle/2))
+rans_loc_c = int(np.ceil(sample_angle/2))
+print(rans_loc_f)
+print(rans_loc_c)
+axes1[0][0].plot(RANS_Profiles[rans_loc_f]['UMean'], RANS_Profiles[rans_loc_f]['y'], 'r', label='RANS profile')
+axes1[0][0].plot(RANS_Profiles[rans_loc_c]['UMean'], RANS_Profiles[rans_loc_c]['y'], 'r')
+axes1[0][0].fill_betweenx(RANS_Profiles[rans_loc_f-2]['y'],
+                          RANS_Profiles[rans_loc_f-2]['UMean'],
+                          RANS_Profiles[rans_loc_c+2]['UMean'],
+                          alpha=0.2, color='r', label="+/- 4")
 
-axes1[0][0].plot(LES_Profiles[2]['UMean'], LES_Profiles[4]['y'], 'b--')
-axes1[0][0].plot(LES_Profiles[3]['UMean'], LES_Profiles[5]['y'], 'b', label='LES profile')
-axes1[0][0].plot(LES_Profiles[4]['UMean'], LES_Profiles[6]['y'], 'b--')
+les_loc_f = int(np.floor(sample_angle/5))
+les_loc_c = int(np.ceil(sample_angle/5))
+print(les_loc_f)
+print(les_loc_c)
+axes1[0][0].plot(LES_Profiles[les_loc_f]['UMean'], LES_Profiles[les_loc_f]['y'], 'b', label='LES profile')
+axes1[0][0].plot(LES_Profiles[les_loc_c]['UMean'], LES_Profiles[les_loc_c]['y'], 'b')
+axes1[0][0].fill_betweenx(LES_Profiles[les_loc_f-1]['y'],
+                          LES_Profiles[les_loc_f-1]['UMean'],
+                          LES_Profiles[les_loc_c+1]['UMean'],
+                          alpha=0.2, color='b', label="+/- 5")
 
 axes1[0, 0].plot(new_profile, RANS_Profiles[1]['y'], 'k', label='MF-MLP profile')
 
 axes1[0, 0].set_xlabel(r'$U/U_0$')
 axes1[0, 0].set_ylabel(r'$y/H$')
 axes1[0, 0].legend(frameon=False, ncol=1)
+axes1[0, 0].set_title(fr'$\alpha = {sample_angle} \; \; x = {sample_location}$')
 
 plt.show()
