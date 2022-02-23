@@ -23,6 +23,8 @@ def collect_profiles(model, x):
         line = fields.get_line(file, position=x, field='U')
         case[ci]['y'] = line[:, 0]
         case[ci]['UMean'] = line[:, -3]
+        print(file)
+        print(len(case[ci]['UMean']))
     print(f'Collected {numcases} profiles from {model}')
     return case, numcases
 
@@ -31,28 +33,31 @@ def plot_profile(sample_location, ax):
     RANS_Profiles, RANS_ncases = collect_profiles('RANS', sample_location)
     LES_Profiles, LES_ncases = collect_profiles('LES', sample_location)
 
-    # add field for LES result interpolated onto LES mesh
+    # add field for LES result interpolated onto RANS mesh
     les_alpha = np.zeros(LES_ncases)
     for i, case in zip(range(LES_ncases), LES_Profiles):
         les_alpha[i] = case['FlowAngle']
-        case['UMean_interp'] = np.interp(RANS_Profiles[1]['y'],  # Using RANS y values not at alpha 0 (0 case differs?)
+        case['UMean_interp'] = np.interp(RANS_Profiles[0]['y'],  # Using RANS y values not at alpha 0 (0 case differs?)
                                          case['y'],              # due to the mesh and needs to be updated
                                          case['UMean'])
 
     rans_alpha = np.zeros(RANS_ncases)
     for i, case in zip(range(RANS_ncases), RANS_Profiles):
         rans_alpha[i] = case['FlowAngle']
+        case['UMean_interp'] = np.interp(RANS_Profiles[0]['y'],  # Using RANS y values not at alpha 0 (0 case differs?)
+                                         case['y'],              # due to the mesh and needs to be updated
+                                         case['UMean'])
 
     rans_velocity_old = np.zeros(RANS_ncases)
     les_velocity_old = np.zeros(3)
     mf_old = np.zeros(1000)
-    Nlocs = len(RANS_Profiles[1]['y'])
+    Nlocs = len(RANS_Profiles[0]['y'])
     new_profile = np.zeros(Nlocs)
     print(Nlocs)
     for yi in range(Nlocs):
         rans_velocity = np.zeros(RANS_ncases)
         for i, case in zip(range(RANS_ncases), RANS_Profiles):
-            rans_velocity[i] = case['UMean'][yi]
+            rans_velocity[i] = case['UMean_interp'][yi]
         les_velocity = np.zeros(LES_ncases)
         for i, case in zip(range(LES_ncases), LES_Profiles):
             les_velocity[i] = case['UMean_interp'][yi]
@@ -100,11 +105,7 @@ def plot_profile(sample_location, ax):
                      LES_Profiles[les_loc_c+1]['UMean']+sample_location,
                      alpha=0.2, color='b', label="+/- 5")
 
-    ax.plot(new_profile+sample_location, RANS_Profiles[1]['y'], 'k', label='MF-MLP profile')
-
-    ax.set_xlabel(r'$U/U_0$')
-    ax.set_ylabel(r'$y/H$')
-    ax.set_title(fr'$\alpha = {sample_angle} \; \; x = {sample_location}$')
+    ax.plot(new_profile+sample_location, RANS_Profiles[0]['y'], 'k', label='MF-MLP profile')
 
 
 sample_angle = 20
@@ -112,7 +113,7 @@ sample_location = 9.0
 fig1, axes1 = plt.subplots(1, 1, figsize=(15, 5),
                            squeeze=False, constrained_layout=True)
 
-for sample_location in range(1, 14, 4):
+for sample_location in range(0, 14, 1):
     plot_profile(sample_location, axes1[0, 0])
 
 cube1 = patches.Rectangle((2, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='///')
@@ -120,6 +121,9 @@ cube2 = patches.Rectangle((7, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgre
 axes1[0, 0].add_patch(cube1)
 axes1[0, 0].add_patch(cube2)
 axes1[0, 0].set_ylim(0, 2)
+axes1[0, 0].set_xlabel(r'$U/U_0$')
+axes1[0, 0].set_ylabel(r'$y/H$')
+axes1[0, 0].set_title(fr'$\alpha = {sample_angle} \; \; x = {sample_location}$')
 # axes1[0, 0].legend(frameon=False, ncol=3)
 axes1[0, 0].set_aspect('equal', adjustable='box')
 
