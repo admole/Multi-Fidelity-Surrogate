@@ -87,44 +87,48 @@ def plot_profile(sample_location, ax):
     rans_loc_c = int(np.ceil(sample_angle/2))
     print(rans_loc_f)
     print(rans_loc_c)
-    ax.plot(RANS_Profiles[rans_loc_f]['UMean']+sample_location, RANS_Profiles[rans_loc_f]['y'], 'r', label='RANS profile')
+    rans_plot, = ax.plot(RANS_Profiles[rans_loc_f]['UMean']+sample_location, RANS_Profiles[rans_loc_f]['y'], 'r', label=fr'RANS Profile at ${sample_angle}^\circ$')
     ax.plot(RANS_Profiles[rans_loc_c]['UMean']+sample_location, RANS_Profiles[rans_loc_c]['y'], 'r')
-    ax.fill_betweenx(RANS_Profiles[rans_loc_f-2]['y'],
-                     RANS_Profiles[rans_loc_f-2]['UMean']+sample_location,
-                     RANS_Profiles[rans_loc_c+2]['UMean']+sample_location,
-                     alpha=0.2, color='r', label="+/- 4")
+    rans_fill = ax.fill_betweenx(RANS_Profiles[rans_loc_f-2]['y'],
+                                 RANS_Profiles[rans_loc_f-2]['UMean']+sample_location,
+                                 RANS_Profiles[rans_loc_c+2]['UMean']+sample_location,
+                                 alpha=0.2, color='r', label=r"RANS $\pm 4^{\circ}$")
 
     les_loc_f = int(np.floor(sample_angle/5))
     les_loc_c = int(np.ceil(sample_angle/5))
     print(les_loc_f)
     print(les_loc_c)
-    ax.plot(LES_Profiles[les_loc_f]['UMean']+sample_location, LES_Profiles[les_loc_f]['y'], 'b', label='LES profile')
+    les_plot, = ax.plot(LES_Profiles[les_loc_f]['UMean']+sample_location, LES_Profiles[les_loc_f]['y'], 'b', label=fr'LES Profile at ${sample_angle}^\circ$')
     ax.plot(LES_Profiles[les_loc_c]['UMean']+sample_location, LES_Profiles[les_loc_c]['y'], 'b')
-    ax.fill_betweenx(LES_Profiles[les_loc_f-1]['y'],
-                     LES_Profiles[les_loc_f-1]['UMean']+sample_location,
-                     LES_Profiles[les_loc_c+1]['UMean']+sample_location,
-                     alpha=0.2, color='b', label="+/- 5")
+    les_fill = ax.fill_betweenx(LES_Profiles[les_loc_f-1]['y'],
+                                LES_Profiles[les_loc_f-1]['UMean']+sample_location,
+                                LES_Profiles[les_loc_c+1]['UMean']+sample_location,
+                                alpha=0.2, color='b', label=r"LES $\pm 5^{\circ}$")
 
-    ax.plot(new_profile+sample_location, RANS_Profiles[0]['y'], 'k', label='MF-MLP profile')
+    mf_plot, = ax.plot(new_profile+sample_location, RANS_Profiles[0]['y'], 'k', label=fr'MF-MLP Profile at ${sample_angle}^\circ$')
+
+    return rans_plot, rans_fill, les_plot, les_fill, mf_plot
 
 
 sample_angle = 20
 sample_location = 9.0
-fig1, axes1 = plt.subplots(1, 1, figsize=(15, 5),
+fig1, axes1 = plt.subplots(1, 1, figsize=(11, 3),
                            squeeze=False, constrained_layout=True)
 
-for sample_location in range(0, 14, 1):
-    plot_profile(sample_location, axes1[0, 0])
+for sample_location in np.arange(0, 14, 1):
+    rans_plot, rans_fill, les_plot, les_fill, mf_plot = plot_profile(sample_location, axes1[0, 0])
 
 cube1 = patches.Rectangle((2, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='///')
 cube2 = patches.Rectangle((7, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='///')
 axes1[0, 0].add_patch(cube1)
 axes1[0, 0].add_patch(cube2)
 axes1[0, 0].set_ylim(0, 2)
+axes1[0, 0].set_xlim(0, 15)
 axes1[0, 0].set_xlabel(r'$U/U_0$')
 axes1[0, 0].set_ylabel(r'$y/H$')
-axes1[0, 0].set_title(fr'$\alpha = {sample_angle} \; \; x = {sample_location}$')
-# axes1[0, 0].legend(frameon=False, ncol=3)
+# axes1[0, 0].set_title(fr'$\alpha = {sample_angle} $', fontsize=40)
+axes1[0, 0].legend(handles=[rans_plot, rans_fill, les_plot, les_fill, mf_plot],
+                   frameon=False, ncol=3, loc='lower left', bbox_to_anchor=(0.05, 1.01))
 axes1[0, 0].set_aspect('equal', adjustable='box')
 
 plt.show()
