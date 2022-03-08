@@ -69,35 +69,37 @@ def plot_surface(ax, data, field, angle):
     ax.set_title(r'$\theta=%i$' % angle)
 
 
-if __name__ == "__main__":
+def main():
     # RANS
     print('Plotting RANS velocity')
-    fig, axes = plt.subplots(7, 3, figsize=(12, 20), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
+    fig, axes = plt.subplots(3, 7, figsize=(20, 8), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
     for ang, i in zip(range(0, 41, 2), range(3*7)):
         print('angle', ang)
         acase = f'RANS/Yaw/a{ang}'
         velocity = get_surface(acase, field='UMean', surface='yNormal')
-        plot_position = axes[int(np.floor(i/3)), int(i % 3)]
+        plot_position = axes[int(i % 3), int(np.floor(i/3))]
         plot_surface(plot_position, velocity, 'UMean', ang)
-    for i in range(7):
-        axes[i, 0].set_ylabel(r'$z$')
     for i in range(3):
+        axes[i, 0].set_ylabel(r'$z$')
+    for i in range(7):
         axes[-1, i].set_xlabel(r'$x$')
 
     # LES
     print('Plotting LES velocity')
-    fig2, axes2 = plt.subplots(7, 1, figsize=(6, 20), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
+    fig2, axes2 = plt.subplots(1, 7, figsize=(20, 3), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
     for ang, i in zip(range(0, 31, 5), range(1*7)):
         print('angle', ang)
         acase = f'LES/Yaw/a{ang}'
         velocity = get_surface(acase, field='U', surface='yNormal')
-        plot_position = axes2[i, 0]
+        plot_position = axes2[0, i]
         plot_surface(plot_position, velocity, 'U', ang)
-        axes2[i, 0].set_ylabel(r'$z$')
-        axes2[-1, 0].set_xlabel(r'$x$')
+        axes2[0, 0].set_ylabel(r'$z$')
+        axes2[0, i].set_xlabel(r'$x$')
 
     plt.show()
-    # fig.savefig('velocityslicesRANS.png', bbox_inches='tight')
+    fig.savefig('velocityslicesRANS.png', bbox_inches='tight')
     fig2.savefig('velocityslicesLES.png', bbox_inches='tight')
 
 
+if __name__ == "__main__":
+    main()
