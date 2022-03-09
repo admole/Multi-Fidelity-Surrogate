@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 from matplotlib.widgets import Slider
-import mfRegression as mfr
+from mfRegression import MFRegress
 import fonts
 
 np.random.seed(2)
@@ -10,7 +10,7 @@ Func = "Sine"
 # Func = "Step"
 
 model = 'GP Mean'
-model = 'MLP'
+# model = 'MLP'
 
 if Func == "Step":
     extraX = True
@@ -51,18 +51,14 @@ X_hf[0] = 0.81
 
 c1 = 1
 c2 = 0
-c3 =0
+c3 = 0
+
+regress = MFRegress(X_lf, lf(X_lf, c1, c2, c3), X_hf, hf(X_hf))
 
 if model == 'MLP':
-    X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = mfr.mfmlp(X_lf,
-                                                                                                   lf(X_lf, c1, c2, c3),
-                                                                                                   X_hf,
-                                                                                                   hf(X_hf))
+    X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = regress.mfmlp()
 else:
-    X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = mfr.mfgp(X_lf,
-                                                                                                  lf(X_lf, c1, c2, c3),
-                                                                                                  X_hf,
-                                                                                                  hf(X_hf))
+    X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = regress.mfgp()
 # Plotting --
 
 legend_location = (1, 1)
@@ -128,22 +124,11 @@ sc3 = Slider(axc3, 'c3', -10, 10, valinit=c3)
 
 
 def update(val):
+    regress = MFRegress(X_lf, lf(X_lf, sc1.val, sc2.val, sc3.val), X_hf, hf(X_hf))
     if model == 'MLP':
-        X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = mfr.mfmlp(X_lf,
-                                                                                                       lf(X_lf,
-                                                                                                          sc1.val,
-                                                                                                          sc2.val,
-                                                                                                          sc3.val),
-                                                                                                       X_hf,
-                                                                                                       hf(X_hf))
+        X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = regress.mfmlp()
     else:
-        X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = mfr.mfgp(X_lf,
-                                                                                                       lf(X_lf,
-                                                                                                          sc1.val,
-                                                                                                          sc2.val,
-                                                                                                          sc3.val),
-                                                                                                       X_hf,
-                                                                                                       hf(X_hf))
+        X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = regress.mfgp()
 
     correlation_line.set_data(pred_lf_mean[:, 0], pred_mf_mean[:, 0])
     correlation_line2.set_data(pred_lf_mean[:, 0], hf(X))

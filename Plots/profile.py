@@ -10,7 +10,7 @@ import sys
 import fonts
 import json
 import fields
-import mfRegression as mfr
+from mfRegression import MFRegress
 
 
 def collect_profiles(model, x):
@@ -67,13 +67,10 @@ def plot_profile(sample_location, ax):
         les_alpha_train = les_alpha[les_alpha % 10 != 0]
         les_alpha_test = les_alpha[les_alpha % 10 == 0]
 
-        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = mfr.mfmlp(rans_alpha,
-                                                                                   rans_velocity,
-                                                                                   rans_velocity_old,
-                                                                                   les_alpha_train,
-                                                                                   les_velocity_train,
-                                                                                   les_velocity_old,
-                                                                                   mf_old)
+        regress = MFRegress(rans_alpha, rans_velocity, les_alpha_train, les_velocity_train,)
+        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp2(rans_velocity_old,
+                                                                                        les_velocity_old,
+                                                                                        mf_old)
         angle_location = np.abs(alpha - sample_angle).argmin()
         new_profile[yi] = mf_mean[angle_location]
         print(f'Actual alpha = {alpha[angle_location]}')

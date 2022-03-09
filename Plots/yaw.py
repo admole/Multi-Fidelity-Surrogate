@@ -11,7 +11,7 @@ import json
 import forces
 import fields
 import cf
-import mfRegression as mfr
+from mfRegression import MFRegress
 
 
 def get_yaw(model):
@@ -52,10 +52,12 @@ def plot_yaw(ax, ax2, rans, les, variable):
     les_train = les[les[r"$\alpha$"] % 10 == 0]
     les_test = les[les[r"$\alpha$"] % 10 != 0]
     ax.scatter(rans[r'$\alpha$'], rans[variable], edgecolors='b', facecolors='none', label=f'RANS Sample')
-    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = mfr.mfmlp(rans[r'$\alpha$'].to_numpy(),
-                                                                               rans[variable].to_numpy(),
-                                                                               les_train[r'$\alpha$'].to_numpy(),
-                                                                               les_train[variable].to_numpy())
+
+    regress = MFRegress(rans[r'$\alpha$'].to_numpy(),
+                        rans[variable].to_numpy(),
+                        les_train[r'$\alpha$'].to_numpy(),
+                        les_train[variable].to_numpy())
+    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp()
     ax.plot(alpha, rans_mean, 'b--', label='RANS Only GPR')
     ax.fill_between(alpha[:, 0], rans_mean[:, 0] - rans_std, rans_mean[:, 0] + rans_std, alpha=0.2, color='b')
     ax.scatter(les_test[r'$\alpha$'], les_test[variable], c='r', label='LES Sample (testing)')
