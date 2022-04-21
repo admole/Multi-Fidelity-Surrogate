@@ -86,9 +86,9 @@ def plot_profile(sample_location, ax):
     print(rans_loc_c)
     rans_plot, = ax.plot(RANS_Profiles[rans_loc_f]['UMean']+sample_location, RANS_Profiles[rans_loc_f]['y'], 'r', label=fr'RANS Profile at ${sample_angle}^\circ$')
     ax.plot(RANS_Profiles[rans_loc_c]['UMean']+sample_location, RANS_Profiles[rans_loc_c]['y'], 'r')
-    rans_fill = ax.fill_betweenx(RANS_Profiles[rans_loc_f-2]['y'],
-                                 RANS_Profiles[rans_loc_f-2]['UMean']+sample_location,
-                                 RANS_Profiles[rans_loc_c+2]['UMean']+sample_location,
+    rans_fill = ax.fill_betweenx(RANS_Profiles[0]['y'],
+                                 RANS_Profiles[rans_loc_f-2]['UMean_interp']+sample_location,
+                                 RANS_Profiles[rans_loc_c+2]['UMean_interp']+sample_location,
                                  alpha=0.2, color='r', label=r"RANS $\pm 4^{\circ}$")
 
     les_loc_f = int(np.floor(sample_angle/5))
@@ -97,9 +97,9 @@ def plot_profile(sample_location, ax):
     print(les_loc_c)
     les_plot, = ax.plot(LES_Profiles[les_loc_f]['UMean']+sample_location, LES_Profiles[les_loc_f]['y'], 'b', label=fr'LES Profile at ${sample_angle}^\circ$')
     ax.plot(LES_Profiles[les_loc_c]['UMean']+sample_location, LES_Profiles[les_loc_c]['y'], 'b')
-    les_fill = ax.fill_betweenx(LES_Profiles[les_loc_f-1]['y'],
-                                LES_Profiles[les_loc_f-1]['UMean']+sample_location,
-                                LES_Profiles[les_loc_c+1]['UMean']+sample_location,
+    les_fill = ax.fill_betweenx(RANS_Profiles[0]['y'],
+                                LES_Profiles[les_loc_f-1]['UMean_interp']+sample_location,
+                                LES_Profiles[les_loc_c+1]['UMean_interp']+sample_location,
                                 alpha=0.2, color='b', label=r"LES $\pm 5^{\circ}$")
 
     mf_plot, = ax.plot(new_profile+sample_location, RANS_Profiles[0]['y'], 'k', label=fr'MF-MLP Profile at ${sample_angle}^\circ$')
