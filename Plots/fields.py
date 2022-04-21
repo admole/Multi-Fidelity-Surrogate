@@ -14,7 +14,7 @@ import pprint
 
 def get_surface(case, u_inf=1, surface="zNormal", field="UMean"):
     file = glob.glob(f'../Data/{case}/postProcessing/surfaces/*/{field}_{surface}.raw')
-    file = file[0]
+    file = file[-1]
     with open(file) as f:
         line = f.readline()
         cnt = 0
@@ -32,7 +32,7 @@ def get_surface(case, u_inf=1, surface="zNormal", field="UMean"):
 def get_line(case, position, field):
     pos = '%.1f' % position
     file = glob.glob(f'../Data/{case}/postProcessing/lines/*/x{pos}_*{field}*.xy')
-    file = file[0]
+    file = file[-1]
     data = np.loadtxt(file)
     return data
 
