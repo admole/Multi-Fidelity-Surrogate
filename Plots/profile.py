@@ -13,70 +13,66 @@ import fields
 from mfRegression import MFRegress
 
 
-def collect_profiles(model, x):
-    j = open(os.path.join(os.getcwd(), f"../Data/{model}/Yaw/inlet_sweep.json"))
-    case = json.load(j)
-    numcases = len(case)
-    path = f"{model}/Yaw/"
-    for ci in range(numcases):
-        file = os.path.join(path, case[ci]["Name"])
-        line = fields.get_line(file, position=x, field='U')
-        case[ci]['y'] = line[:, 0]
-        case[ci]['UMean'] = line[:, -3]
-        print(file)
-        print(len(case[ci]['UMean']))
-    print(f'Collected {numcases} profiles from {model}')
-    return case, numcases
+class Profiles:
+    def __init__(self, model, x):
+        self.model = model
+        self.x = x
+        self.path = f"{self.model}/Yaw/"
+        self.json_file = open(os.path.join(os.getcwd(), f"../Data/{self.path}inlet_sweep.json"))
+        self.case = json.load(self.json_file)
+        self.n_cases = len(self.case)
+        self.alphas = []
+        self.y = []
+        self.u = []
+        self.u_interp = []
+
+    def collect_profiles(self):
+        for ci in range(self.n_cases):
+            file = os.path.join(self.path, self.case[ci]["Name"])
+            line = fields.get_line(file, position=self.x, field='U')
+            self.alphas.append(self.case[ci]['FlowAngle'])
+            self.y.append(line[:, 0])
+            self.u.append(line[:, -3])
+            print(file)
+        print(f'Collected {self.n_cases} profiles from {self.model}')
+
+    def interpolate_velocity(self, interp_to):
+        for i, y, u in zip(range(self.n_cases), self.y, self.u):
+            self.u_interp.append(np.interp(interp_to, self.y[i], self.u[i]))
+
+    def training_split(self):
+        alpha_train = []
+        velocity_train = []
+        for i in range(len(self.alphas)):
+            if self.alphas[i] % 10 == 0:
+                alpha_train.append(self.alphas[i])
+                velocity_train.append(self.u_interp[i])
+        return alpha_train, velocity_train
 
 
 def plot_profile(sample_location, ax):
-    RANS_Profiles, RANS_ncases = collect_profiles('RANS', sample_location)
-    LES_Profiles, LES_ncases = collect_profiles('LES', sample_location)
+    rans_profiles = Profiles('RANS', sample_location)
+    rans_profiles.collect_profiles()
+    les_profiles = Profiles('LES', sample_location)
+    les_profiles.collect_profiles()
 
-    # add field for LES result interpolated onto RANS mesh
-    les_alpha = np.zeros(LES_ncases)
-    for i, case in zip(range(LES_ncases), LES_Profiles):
-        les_alpha[i] = case['FlowAngle']
-        case['UMean_interp'] = np.interp(RANS_Profiles[0]['y'],  # Using RANS y values not at alpha 0 (0 case differs?)
-                                         case['y'],              # due to the mesh and needs to be updated
-                                         case['UMean'])
+    rans_profiles.interpolate_velocity(interp_to=rans_profiles.y[0])
+    les_profiles.interpolate_velocity(interp_to=rans_profiles.y[0])
 
-    rans_alpha = np.zeros(RANS_ncases)
-    for i, case in zip(range(RANS_ncases), RANS_Profiles):
-        rans_alpha[i] = case['FlowAngle']
-        case['UMean_interp'] = np.interp(RANS_Profiles[0]['y'],  # Using RANS y values not at alpha 0 (0 case differs?)
-                                         case['y'],              # due to the mesh and needs to be updated
-                                         case['UMean'])
+    les_training_alpha, les_training_velocity = les_profiles.training_split()
 
-    rans_velocity_old = np.zeros(RANS_ncases)
-    les_velocity_old = np.zeros(3)
-    mf_old = np.zeros(1000)
-    Nlocs = len(RANS_Profiles[0]['y'])
-    new_profile = np.zeros(Nlocs)
-    print(Nlocs)
-    for yi in range(Nlocs):
-        rans_velocity = np.zeros(RANS_ncases)
-        for i, case in zip(range(RANS_ncases), RANS_Profiles):
-            rans_velocity[i] = case['UMean_interp'][yi]
-        les_velocity = np.zeros(LES_ncases)
-        for i, case in zip(range(LES_ncases), LES_Profiles):
-            les_velocity[i] = case['UMean_interp'][yi]
+    regress = MFRegress(np.array(rans_profiles.alphas),
+                        np.array(rans_profiles.u_interp),
+                        np.array(les_training_alpha),
+                        np.array(les_training_velocity))
 
-        les_velocity_train = les_velocity[les_alpha % 10 != 0]
-        les_velocity_test = les_velocity[les_alpha % 10 == 0]
-        les_alpha_train = les_alpha[les_alpha % 10 != 0]
-        les_alpha_test = les_alpha[les_alpha % 10 == 0]
+    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp()
 
-        regress = MFRegress(rans_alpha, rans_velocity, les_alpha_train, les_velocity_train,)
-        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp2(rans_velocity_old,
-                                                                                        les_velocity_old,
-                                                                                        mf_old)
-        angle_location = np.abs(alpha - sample_angle).argmin()
-        new_profile[yi] = mf_mean[angle_location]
-        print(f'Actual alpha = {alpha[angle_location]}')
-        rans_velocity_old = rans_velocity
-        les_velocity_old = les_velocity_train
-        mf_old = mf_mean
+    print(np.shape(mf_mean))
+
+    angle_location = np.abs(alpha - sample_angle).argmin()
+    new_profile = mf_mean[angle_location]
+    print(f'Actual alpha = {alpha[angle_location]}')
 
     print(f'Plotting mfr profile at angle {alpha[angle_location]}')
 
@@ -84,31 +80,32 @@ def plot_profile(sample_location, ax):
     rans_loc_c = int(np.ceil(sample_angle/2))
     print(rans_loc_f)
     print(rans_loc_c)
-    rans_plot, = ax.plot(RANS_Profiles[rans_loc_f]['UMean']+sample_location, RANS_Profiles[rans_loc_f]['y'], 'r', label=fr'RANS Profile at ${sample_angle}^\circ$')
-    ax.plot(RANS_Profiles[rans_loc_c]['UMean']+sample_location, RANS_Profiles[rans_loc_c]['y'], 'r')
-    rans_fill = ax.fill_betweenx(RANS_Profiles[0]['y'],
-                                 RANS_Profiles[rans_loc_f-2]['UMean_interp']+sample_location,
-                                 RANS_Profiles[rans_loc_c+2]['UMean_interp']+sample_location,
+
+    rans_plot, = ax.plot(rans_profiles.u[rans_loc_f]+sample_location, rans_profiles.y[rans_loc_f], 'r', label=fr'RANS Profile at ${sample_angle}^\circ$')
+    ax.plot(rans_profiles.u[rans_loc_c]+sample_location, rans_profiles.y[rans_loc_c], 'r')
+    rans_fill = ax.fill_betweenx(rans_profiles.y[0],
+                                 rans_profiles.u_interp[rans_loc_f-2]+sample_location,
+                                 rans_profiles.u_interp[rans_loc_c+2]+sample_location,
                                  alpha=0.2, color='r', label=r"RANS $\pm 4^{\circ}$")
 
     les_loc_f = int(np.floor(sample_angle/5))
     les_loc_c = int(np.ceil(sample_angle/5))
     print(les_loc_f)
     print(les_loc_c)
-    les_plot, = ax.plot(LES_Profiles[les_loc_f]['UMean']+sample_location, LES_Profiles[les_loc_f]['y'], 'b', label=fr'LES Profile at ${sample_angle}^\circ$')
-    ax.plot(LES_Profiles[les_loc_c]['UMean']+sample_location, LES_Profiles[les_loc_c]['y'], 'b')
-    les_fill = ax.fill_betweenx(RANS_Profiles[0]['y'],
-                                LES_Profiles[les_loc_f-1]['UMean_interp']+sample_location,
-                                LES_Profiles[les_loc_c+1]['UMean_interp']+sample_location,
+
+    les_plot, = ax.plot(les_profiles.u[les_loc_f]+sample_location, les_profiles.y[les_loc_f], 'b', label=fr'LES Profile at ${sample_angle}^\circ$')
+    ax.plot(les_profiles.u[les_loc_c]+sample_location, les_profiles.y[les_loc_c], 'b')
+    les_fill = ax.fill_betweenx(rans_profiles.y[0],
+                                les_profiles.u_interp[les_loc_f-1]+sample_location,
+                                les_profiles.u_interp[les_loc_c+1]+sample_location,
                                 alpha=0.2, color='b', label=r"LES $\pm 5^{\circ}$")
 
-    mf_plot, = ax.plot(new_profile+sample_location, RANS_Profiles[0]['y'], 'k', label=fr'MF-MLP Profile at ${sample_angle}^\circ$')
+    mf_plot, = ax.plot(new_profile+sample_location, rans_profiles.y[0], 'k', label=fr'MF-MLP Profile at ${sample_angle}^\circ$')
 
     return rans_plot, rans_fill, les_plot, les_fill, mf_plot
 
 
-sample_angle = 20
-sample_location = 9.0
+sample_angle = 15
 fig1, axes1 = plt.subplots(1, 1, figsize=(11, 3),
                            squeeze=False, constrained_layout=True)
 

@@ -14,6 +14,7 @@ class MFRegress:
 
     def prep(self):
         from sklearn.preprocessing import MinMaxScaler
+        import numpy as np
 
         self.x_lf = self.x_lf.reshape(-1, 1)
         self.x_hf = self.x_hf.reshape(-1, 1)
@@ -22,10 +23,11 @@ class MFRegress:
         self.x_lf = scaler.transform(self.x_lf)
         self.x_hf = scaler.transform(self.x_hf)
         self.x = scaler.transform(self.x)
-        self.lf = self.lf.T
-        self.hf = self.hf.T
-        self.lf = self.lf.reshape(-1, 1)
-        self.hf = self.hf.reshape(-1, 1)
+        if len(np.shape(self.lf)) == 1:
+            self.lf = self.lf.T
+            self.hf = self.hf.T
+            self.lf = self.lf.reshape(-1, 1)
+            self.hf = self.hf.reshape(-1, 1)
         datascaler = MinMaxScaler()
         datascaler.fit(self.lf)
         self.lf = datascaler.transform(self.lf)
@@ -90,15 +92,18 @@ class MFRegress:
 
     def mfmlp(self):
         from sklearn.neural_network import MLPRegressor
-        from sklearn.ensemble import StackingRegressor
         import numpy as np
-        from sklearn.preprocessing import MinMaxScaler
 
         solver = 'lbfgs'
         activation = 'tanh'
         # activation = 'relu'
         hidden_layers1 = (20, 50, 50, 50, 20)
         hidden_layers2 = (20, 20, 20, 20)
+
+        if len(np.shape(self.lf)) == 1:
+            reshape = True
+        else:
+            reshape = False
 
         scaler, datascaler = self.prep()
 
@@ -113,11 +118,16 @@ class MFRegress:
                                random_state=1,
                                max_iter=1000).fit(self.x_hf, self.hf)
 
-        l1mean = mlpr_lf.predict(self.x_hf).reshape(-1, 1)
+        l1mean = mlpr_lf.predict(self.x_hf)
+        if reshape:
+            l1mean = l1mean.reshape(-1, 1)
 
         if self.embedding_theory:
-            l1mean_shift1 = mlpr_lf.predict(self.x_hf + 0.02).reshape(-1, 1)
-            l1mean_shift2 = mlpr_lf.predict(self.x_hf + 0.04).reshape(-1, 1)
+            l1mean_shift1 = mlpr_lf.predict(self.x_hf + 0.02)
+            l1mean_shift2 = mlpr_lf.predict(self.x_hf + 0.04)
+            if reshape:
+                l1mean_shift1 = l1mean_shift1.reshape(-1, 1)
+                l1mean_shift2 = l1mean_shift2.reshape(-1, 1)
             l2_train = np.hstack((self.x_hf, l1mean, l1mean_shift1, l1mean_shift2))
         else:
             l2_train = np.hstack((self.x_hf, l1mean))
@@ -129,18 +139,25 @@ class MFRegress:
                                     # alpha=0.0001,
                                     max_iter=1000).fit(l2_train, self.hf)
 
-        pred_hf_mean = mlpr_hf.predict(self.x).reshape(-1, 1)
-        pred_lf_mean = mlpr_lf.predict(self.x).reshape(-1, 1)
+        pred_hf_mean = mlpr_hf.predict(self.x)
+        pred_lf_mean = mlpr_lf.predict(self.x)
+        if reshape:
+            pred_hf_mean = pred_hf_mean.reshape(-1, 1)
+            pred_lf_mean = pred_lf_mean.reshape(-1, 1)
 
         if self.embedding_theory:
-            pred_lf_mean_shift1 = mlpr_lf.predict(self.x + 0.02).reshape(-1, 1)
-            pred_lf_mean_shift2 = mlpr_lf.predict(self.x + 0.04).reshape(-1, 1)
+            pred_lf_mean_shift1 = mlpr_lf.predict(self.x + 0.02)
+            pred_lf_mean_shift2 = mlpr_lf.predict(self.x + 0.04)
+            if reshape:
+                pred_lf_mean_shift1 = pred_lf_mean_shift1.reshape(-1, 1)
+                pred_lf_mean_shift2 = pred_lf_mean_shift2.reshape(-1, 1)
             l2_test = np.hstack((self.x, pred_lf_mean, pred_lf_mean_shift1, pred_lf_mean_shift2))
         else:
             l2_test = np.hstack((self.x, pred_lf_mean))
 
         pred_mf_mean = mlpr_mf_nlin.predict(l2_test)
-        pred_mf_mean = pred_mf_mean.reshape(-1, 1)
+        if reshape:
+            pred_mf_mean = pred_mf_mean.reshape(-1, 1)
 
         pred_lf_std = np.zeros(len(pred_lf_mean))
         pred_hf_std = np.zeros(len(pred_hf_mean))
@@ -152,8 +169,6 @@ class MFRegress:
         pred_mf_mean = datascaler.inverse_transform(pred_mf_mean)
 
         return self.x, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std
-
-
 
     def mfmlp2(self, lf2, hf2, old_result):
         from sklearn.neural_network import MLPRegressor
