@@ -111,12 +111,12 @@ class MFRegress:
                                hidden_layer_sizes=hidden_layers1,
                                solver=solver,
                                random_state=1,
-                               max_iter=1000).fit(self.x_lf, self.lf)
+                               max_iter=5000).fit(self.x_lf, self.lf)
         mlpr_hf = MLPRegressor(activation=activation,
                                hidden_layer_sizes=hidden_layers2,
                                solver=solver,
                                random_state=1,
-                               max_iter=1000).fit(self.x_hf, self.hf)
+                               max_iter=5000).fit(self.x_hf, self.hf)
 
         l1mean = mlpr_lf.predict(self.x_hf)
         if reshape:
@@ -137,7 +137,7 @@ class MFRegress:
                                     solver=solver,
                                     random_state=1,
                                     # alpha=0.0001,
-                                    max_iter=1000).fit(l2_train, self.hf)
+                                    max_iter=5000).fit(l2_train, self.hf)
 
         pred_hf_mean = mlpr_hf.predict(self.x)
         pred_lf_mean = mlpr_lf.predict(self.x)
