@@ -33,7 +33,6 @@ class Profiles:
             self.alphas.append(self.case[ci]['FlowAngle'])
             self.y.append(line[:, 0])
             self.u.append(line[:, -3])
-            print(file)
         print(f'Collected {self.n_cases} profiles from {self.model}')
 
     def interpolate_velocity(self, interp_to):
@@ -68,18 +67,12 @@ def plot_profile(sample_location, ax):
 
     alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp()
 
-    print(np.shape(mf_mean))
-
     angle_location = np.abs(alpha - sample_angle).argmin()
     new_profile = mf_mean[angle_location]
-    print(f'Actual alpha = {alpha[angle_location]}')
-
     print(f'Plotting mfr profile at angle {alpha[angle_location]}')
 
     rans_loc_f = int(np.floor(sample_angle/2))
     rans_loc_c = int(np.ceil(sample_angle/2))
-    print(rans_loc_f)
-    print(rans_loc_c)
 
     rans_plot, = ax.plot(rans_profiles.u[rans_loc_f]+sample_location, rans_profiles.y[rans_loc_f], 'r', label=fr'RANS Profile at ${sample_angle}^\circ$')
     ax.plot(rans_profiles.u[rans_loc_c]+sample_location, rans_profiles.y[rans_loc_c], 'r')
@@ -90,8 +83,6 @@ def plot_profile(sample_location, ax):
 
     les_loc_f = int(np.floor(sample_angle/5))
     les_loc_c = int(np.ceil(sample_angle/5))
-    print(les_loc_f)
-    print(les_loc_c)
 
     les_plot, = ax.plot(les_profiles.u[les_loc_f]+sample_location, les_profiles.y[les_loc_f], 'b', label=fr'LES Profile at ${sample_angle}^\circ$')
     ax.plot(les_profiles.u[les_loc_c]+sample_location, les_profiles.y[les_loc_c], 'b')
@@ -110,6 +101,7 @@ fig1, axes1 = plt.subplots(1, 1, figsize=(11, 3),
                            squeeze=False, constrained_layout=True)
 
 for sample_location in np.arange(0, 14, 1):
+    print(f'\nProfile at x = {sample_location}')
     rans_plot, rans_fill, les_plot, les_fill, mf_plot = plot_profile(sample_location, axes1[0, 0])
 
 cube1 = patches.Rectangle((2, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='///')
