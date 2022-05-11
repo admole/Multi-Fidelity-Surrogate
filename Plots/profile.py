@@ -18,7 +18,7 @@ class Profiles:
         self.model = model
         self.x = x
         self.path = f"{self.model}/Yaw/"
-        self.json_file = open(os.path.join(os.getcwd(), f"../Data/{self.path}inlet_sweep.json"))
+        self.json_file = open(os.path.join(os.getcwd(), f"../Data/{self.path}inlet_sweep_extra.json"))
         self.case = json.load(self.json_file)
         self.n_cases = len(self.case)
         self.alphas = []
@@ -71,29 +71,15 @@ def plot_profile(sample_location, ax):
     new_profile = mf_mean[angle_location]
     print(f'Plotting mfr profile at angle {alpha[angle_location]}')
 
-    rans_loc_f = int(np.floor(sample_angle/2))
-    rans_loc_c = int(np.ceil(sample_angle/2))
+    rans_sample = np.abs(np.array(rans_profiles.alphas) - sample_angle).argmin()
+    rans_plot, = ax.plot(rans_profiles.u[rans_sample]+sample_location, rans_profiles.y[rans_sample], 'r', label=fr'RANS Profile at ${sample_angle}^\circ$')
 
-    rans_plot, = ax.plot(rans_profiles.u[rans_loc_f]+sample_location, rans_profiles.y[rans_loc_f], 'r', label=fr'RANS Profile at ${sample_angle}^\circ$')
-    ax.plot(rans_profiles.u[rans_loc_c]+sample_location, rans_profiles.y[rans_loc_c], 'r')
-    rans_fill = ax.fill_betweenx(rans_profiles.y[0],
-                                 rans_profiles.u_interp[rans_loc_f-2]+sample_location,
-                                 rans_profiles.u_interp[rans_loc_c+2]+sample_location,
-                                 alpha=0.2, color='r', label=r"RANS $\pm 4^{\circ}$")
-
-    les_loc_f = int(np.floor(sample_angle/5))
-    les_loc_c = int(np.ceil(sample_angle/5))
-
-    les_plot, = ax.plot(les_profiles.u[les_loc_f]+sample_location, les_profiles.y[les_loc_f], 'b', label=fr'LES Profile at ${sample_angle}^\circ$')
-    ax.plot(les_profiles.u[les_loc_c]+sample_location, les_profiles.y[les_loc_c], 'b')
-    les_fill = ax.fill_betweenx(rans_profiles.y[0],
-                                les_profiles.u_interp[les_loc_f-1]+sample_location,
-                                les_profiles.u_interp[les_loc_c+1]+sample_location,
-                                alpha=0.2, color='b', label=r"LES $\pm 5^{\circ}$")
+    les_sample = np.abs(np.array(les_profiles.alphas) - sample_angle).argmin()
+    les_plot, = ax.plot(les_profiles.u[les_sample]+sample_location, les_profiles.y[les_sample], 'b', label=fr'LES Profile at ${sample_angle}^\circ$')
 
     mf_plot, = ax.plot(new_profile+sample_location, rans_profiles.y[0], 'k', label=fr'MF-MLP Profile at ${sample_angle}^\circ$')
 
-    return rans_plot, rans_fill, les_plot, les_fill, mf_plot
+    return rans_plot, les_plot, mf_plot
 
 
 sample_angle = 15
@@ -102,7 +88,7 @@ fig1, axes1 = plt.subplots(1, 1, figsize=(11, 3),
 
 for sample_location in np.arange(0, 14, 1):
     print(f'\nProfile at x = {sample_location}')
-    rans_plot, rans_fill, les_plot, les_fill, mf_plot = plot_profile(sample_location, axes1[0, 0])
+    rans_plot, les_plot, mf_plot = plot_profile(sample_location, axes1[0, 0])
 
 cube1 = patches.Rectangle((2, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='///')
 cube2 = patches.Rectangle((7, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='///')
@@ -113,7 +99,7 @@ axes1[0, 0].set_xlim(0, 15)
 axes1[0, 0].set_xlabel(r'$U/U_0$')
 axes1[0, 0].set_ylabel(r'$y/H$')
 # axes1[0, 0].set_title(fr'$\alpha = {sample_angle} $', fontsize=40)
-axes1[0, 0].legend(handles=[rans_plot, rans_fill, les_plot, les_fill, mf_plot],
+axes1[0, 0].legend(handles=[rans_plot, les_plot, mf_plot],
                    frameon=False, ncol=3, loc='lower left', bbox_to_anchor=(0.05, 1.01))
 axes1[0, 0].set_aspect('equal', adjustable='box')
 
