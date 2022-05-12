@@ -30,7 +30,7 @@ class Profiles:
     def collect_profiles(self):
         for ci in range(self.n_cases):
             file = os.path.join(self.path, self.case[ci]["Name"])
-            line = fields.get_line(file, position=self.x, field='U')
+            line = fields.get_line(file, position=self.x, field='UMean')
             self.alphas.append(self.case[ci]['FlowAngle'])
             self.y.append(line[:, 0])
             self.u.append(line[:, -3])
