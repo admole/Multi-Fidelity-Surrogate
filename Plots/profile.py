@@ -11,6 +11,7 @@ import fonts
 import json
 import fields
 from mfRegression import MFRegress
+from matplotlib import animation
 
 
 class Profiles:
@@ -63,44 +64,50 @@ def plot_profile(sample_location, ax):
     regress = MFRegress(np.array(rans_profiles.alphas),
                         np.array(rans_profiles.u_interp),
                         np.array(les_training_alpha),
-                        np.array(les_training_velocity))
-
+                        np.array(les_training_velocity),
+                        embedding_theory=True,)
+    
     alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp()
+    
+    return mf_mean, rans_profiles.y[0]
 
-    angle_location = np.abs(alpha - sample_angle).argmin()
-    new_profile = mf_mean[angle_location]
-    print(f'Plotting mfr profile at angle {alpha[angle_location]}')
 
-    rans_sample = np.abs(np.array(rans_profiles.alphas) - sample_angle).argmin()
-    rans_plot, = ax.plot(rans_profiles.u[rans_sample]+sample_location, rans_profiles.y[rans_sample], 'r', label=fr'RANS Profile at ${sample_angle}^\circ$')
+def draw(it, angle, mf_mean, y):
+    axes1[0, 0].clear()
 
-    les_sample = np.abs(np.array(les_profiles.alphas) - sample_angle).argmin()
-    les_plot, = ax.plot(les_profiles.u[les_sample]+sample_location, les_profiles.y[les_sample], 'b', label=fr'LES Profile at ${sample_angle}^\circ$')
+    cube1 = patches.Rectangle((2, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='///')
+    cube2 = patches.Rectangle((7, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='///')
+    axes1[0, 0].add_patch(cube1)
+    axes1[0, 0].add_patch(cube2)
+    axes1[0, 0].set_ylim(0, 2)
+    axes1[0, 0].set_xlim(0, 15)
+    axes1[0, 0].set_xlabel(r'$U/U_0$')
+    axes1[0, 0].set_ylabel(r'$y/H$')
+    # axes1[0, 0].set_title(fr'$\angle = {sample_angle} $', fontsize=40)
+    axes1[0, 0].set_aspect('equal', adjustable='box')
+    
+    print(f'Plotting mfr profile at angle {angle[it*10]}')
+    for sample_loc, i in zip(np.arange(0, 14, 1), range(len(mf_mean))):
+        mf_plot, = axes1[0, 0].plot(mf_mean[i][it*10]+sample_loc, y[i], 'k', label=fr'MF-MLP Profile at ${int(angle[it*10])}^\circ$')
+    
+    axes1[0, 0].legend(handles=[mf_plot], frameon=False, ncol=3, loc='lower left', bbox_to_anchor=(0.05, 1.01))
 
-    mf_plot, = ax.plot(new_profile+sample_location, rans_profiles.y[0], 'k', label=fr'MF-MLP Profile at ${sample_angle}^\circ$')
-
-    return rans_plot, les_plot, mf_plot
+    return mf_plot
 
 
 sample_angle = 15
 fig1, axes1 = plt.subplots(1, 1, figsize=(11, 3),
                            squeeze=False, constrained_layout=True)
+mfs = []
+ys = []
+alpha = np.linspace(0, 40, 1000)
 
 for sample_location in np.arange(0, 14, 1):
     print(f'\nProfile at x = {sample_location}')
-    rans_plot, les_plot, mf_plot = plot_profile(sample_location, axes1[0, 0])
-
-cube1 = patches.Rectangle((2, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='///')
-cube2 = patches.Rectangle((7, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='///')
-axes1[0, 0].add_patch(cube1)
-axes1[0, 0].add_patch(cube2)
-axes1[0, 0].set_ylim(0, 2)
-axes1[0, 0].set_xlim(0, 15)
-axes1[0, 0].set_xlabel(r'$U/U_0$')
-axes1[0, 0].set_ylabel(r'$y/H$')
-# axes1[0, 0].set_title(fr'$\alpha = {sample_angle} $', fontsize=40)
-axes1[0, 0].legend(handles=[rans_plot, les_plot, mf_plot],
-                   frameon=False, ncol=3, loc='lower left', bbox_to_anchor=(0.05, 1.01))
-axes1[0, 0].set_aspect('equal', adjustable='box')
-
-plt.show()
+    mf, y = plot_profile(sample_location, axes1[0, 0])
+    mfs.append(mf)
+    ys.append(y)
+    
+anim = animation.FuncAnimation(fig1, draw, fargs=(alpha, mfs, ys,), frames=100, interval=1, blit=False)
+# plt.show()
+anim.save('animations/profiles_animation.mp4', fps=10, dpi=400)
