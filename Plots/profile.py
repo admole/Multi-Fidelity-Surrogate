@@ -29,7 +29,7 @@ class Profiles:
     def collect_profiles(self):
         for ci in range(self.n_cases):
             file = os.path.join(self.path, self.case[ci]["Name"])
-            line = fields.get_line(file, position=self.x, field='U')
+            line = fields.get_line(file, position=self.x, field='UMean')
             self.alphas.append(self.case[ci]['FlowAngle'])
             self.y.append(line[:, 0])
             self.u.append(line[:, -3])
@@ -96,7 +96,7 @@ def plot_profile(sample_location, ax):
     return rans_plot, rans_fill, les_plot, les_fill, mf_plot
 
 
-sample_angle = 15
+sample_angle = 5
 fig1, axes1 = plt.subplots(1, 1, figsize=(11, 3),
                            squeeze=False, constrained_layout=True)
 
