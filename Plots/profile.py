@@ -50,7 +50,7 @@ class Profiles:
         return alpha_train, velocity_train
 
 
-def plot_profile(sample_location, ax):
+def regress_profile(sample_location,):
     rans_profiles = Profiles('RANS', sample_location)
     rans_profiles.collect_profiles()
     les_profiles = Profiles('LES', sample_location)
@@ -69,10 +69,11 @@ def plot_profile(sample_location, ax):
     
     alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp()
     
-    return mf_mean, rans_profiles.y[0]
+    return alpha, rans_profiles, les_profiles, mf_mean, rans_profiles.y[0]
 
 
-def draw(it, angle, mf_mean, y):
+def draw(it, angles, hf, lf, mf, y):
+    angle = angles[it*10]
     axes1[0, 0].clear()
 
     cube1 = patches.Rectangle((2, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='///')
@@ -86,11 +87,23 @@ def draw(it, angle, mf_mean, y):
     # axes1[0, 0].set_title(fr'$\angle = {sample_angle} $', fontsize=40)
     axes1[0, 0].set_aspect('equal', adjustable='box')
     
-    print(f'Plotting mfr profile at angle {angle[it*10]}')
-    for sample_loc, i in zip(np.arange(0, 14, 1), range(len(mf_mean))):
-        mf_plot, = axes1[0, 0].plot(mf_mean[i][it*10]+sample_loc, y[i], 'k', label=fr'MF-MLP Profile at ${int(angle[it*10])}^\circ$')
+    print(f'Plotting mfr profile at angle {angle}')
+
+    hf_loc = np.argmin(np.abs(hf[0].alphas-angle))
+    hf_cols = ['b', 'c', 'b', 'c', 'b', 'c', 'b']
+    lf_loc = np.argmin(np.abs(lf[0].alphas-angle))
+
+    for sample_loc, i in zip(np.arange(0, 14, 1), range(len(mf))):
+        hf_plot, = axes1[0, 0].plot(hf[i].u_interp[hf_loc]+sample_loc, y[i], hf_cols[hf_loc],
+                                    label=fr'LES Profile at ${int(hf[i].alphas[hf_loc])}^\circ$')
+        lf_plot, = axes1[0, 0].plot(lf[i].u_interp[lf_loc]+sample_loc, y[i], 'r',
+                                    label=fr'RANS Profile at ${int(lf[i].alphas[lf_loc])}^\circ$')
+        mf_plot, = axes1[0, 0].plot(mf[i][it*10]+sample_loc, y[i], 'k',
+                                    label=fr'MF-MLP Profile at ${int(angle)}^\circ$')
     
-    axes1[0, 0].legend(handles=[mf_plot], frameon=False, ncol=3, loc='lower left', bbox_to_anchor=(0.05, 1.01))
+    axes1[0, 0].legend(handles=[mf_plot, hf_plot, lf_plot],
+                       frameon=False, ncol=3, loc='lower left',
+                       bbox_to_anchor=(0.05, 1.01))
 
     return mf_plot
 
@@ -98,16 +111,20 @@ def draw(it, angle, mf_mean, y):
 sample_angle = 15
 fig1, axes1 = plt.subplots(1, 1, figsize=(11, 3),
                            squeeze=False, constrained_layout=True)
+
+lfs = []
+hfs = []
 mfs = []
 ys = []
-alpha = np.linspace(0, 40, 1000)
 
 for sample_location in np.arange(0, 14, 1):
     print(f'\nProfile at x = {sample_location}')
-    mf, y = plot_profile(sample_location, axes1[0, 0])
+    alpha, lf, hf, mf, y = regress_profile(sample_location)
+    lfs.append(lf)
+    hfs.append(hf)
     mfs.append(mf)
     ys.append(y)
     
-anim = animation.FuncAnimation(fig1, draw, fargs=(alpha, mfs, ys,), frames=100, interval=1, blit=False)
+anim = animation.FuncAnimation(fig1, draw, fargs=(alpha, hfs, lfs, mfs, ys,), frames=101, interval=1, blit=False)
 # plt.show()
-anim.save('animations/profiles_animation.mp4', fps=10, dpi=400)
+anim.save('animations/profiles_animation.mp4', fps=5, dpi=400)
