@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from matplotlib import animation
 import os
 import sys
 import fonts
@@ -64,42 +65,41 @@ def plot_surface(ax, data, field, angle):
     # contour = ax.tricontourf(data['x'], data['z'], data['UMean_x'], cmap='seismic', levels=np.arange(-1, 1.5, 0.1))
     # contour = ax.tricontourf(data['x'], data['z'], magnitude, cmap='bwr', levels=np.arange(0, 2, 0.05))
     contour = ax.tricontourf(data['x'], data['z'], magnitude, cmap='inferno', levels=np.arange(0, 1.5, 0.05))
-    contour = ax.tricontour(data['x'], data['z'], data[f'{field}_x'], colors='w', linewidths=1, levels=[0])
+    # contour = ax.tricontour(data['x'], data['z'], data[f'{field}_x'], colors='w', linewidths=1, levels=[0])
     ax.set_aspect('equal')
     add_cubes(ax)
     ax.set_title(r'$\theta=%i$' % angle)
 
 
-def main():
-    # RANS
-    print('Plotting RANS velocity')
-    fig, axes = plt.subplots(3, 7, figsize=(20, 8), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
-    for ang, i in zip(range(0, 41, 2), range(3*7)):
+def draw(it):
+    ang = RANS_CASES[it]
+    print('angle', ang)
+
+    if any(x == ang for x in LES_CASES):
+        print('Plotting LES velocity')
+        acase = f'LES/Yaw/a{ang}'
+        velocity = get_surface(acase, field='U', surface='yHalf')
+        plot_surface(axes[0, 0], velocity, 'U', ang)
+    else:
+        print('Plotting RANS velocity')
         print('angle', ang)
         acase = f'RANS/Yaw/a{ang}'
-        velocity = get_surface(acase, field='UMean', surface='yNormal')
-        plot_position = axes[int(i % 3), int(np.floor(i/3))]
-        plot_surface(plot_position, velocity, 'UMean', ang)
-    for i in range(3):
-        axes[i, 0].set_ylabel(r'$z$')
-    for i in range(7):
-        axes[-1, i].set_xlabel(r'$x$')
+        velocity = get_surface(acase, field='UMean', surface='yHalf')
+        plot_surface(axes[0, 0], velocity, 'UMean', ang)
+    
+    
+fig, axes = plt.subplots(1, 1, figsize=(6, 5), squeeze=False, constrained_layout=True)
+RANS_CASES = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34]
+LES_CASES = [0, 10, 20, 30]
 
-    # LES
-    print('Plotting LES velocity')
-    fig2, axes2 = plt.subplots(1, 7, figsize=(20, 3), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
-    for ang, i in zip(range(0, 31, 5), range(1*7)):
-        print('angle', ang)
-        acase = f'LES/Yaw/a{ang}'
-        velocity = get_surface(acase, field='U', surface='yNormal')
-        plot_position = axes2[0, i]
-        plot_surface(plot_position, velocity, 'U', ang)
-        axes2[0, 0].set_ylabel(r'$z$')
-        axes2[0, i].set_xlabel(r'$x$')
 
-    plt.show()
-    fig.savefig('velocityslicesRANS.png', bbox_inches='tight')
-    fig2.savefig('velocityslicesLES.png', bbox_inches='tight')
+def main():
+    axes[0, 0].set_ylabel(r'$z$')
+    axes[0, 0].set_xlabel(r'$x$')
+    n_cases = len(RANS_CASES)
+    anim = animation.FuncAnimation(fig, draw, frames=n_cases, interval=1, blit=False)
+    # plt.show()
+    anim.save('animations/yaw_animation2.mp4', fps=1)
 
 
 if __name__ == "__main__":
