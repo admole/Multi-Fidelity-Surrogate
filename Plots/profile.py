@@ -12,6 +12,7 @@ import json
 import fields
 from mfRegression import MFRegress
 from matplotlib import animation
+import argparse
 
 
 class Profiles:
@@ -72,59 +73,71 @@ def regress_profile(sample_location,):
     return alpha, rans_profiles, les_profiles, mf_mean, rans_profiles.y[0]
 
 
-def draw(it, angles, hf, lf, mf, y):
-    angle = angles[it*10]
-    axes1[0, 0].clear()
+def draw(it, ax, angles, hf, lf, mf, y):
+    angle = angles[int(it*10)]
+    ax[0, 0].clear()
 
     cube1 = patches.Rectangle((2, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='///')
     cube2 = patches.Rectangle((7, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='///')
-    axes1[0, 0].add_patch(cube1)
-    axes1[0, 0].add_patch(cube2)
-    axes1[0, 0].set_ylim(0, 2)
-    axes1[0, 0].set_xlim(0, 15)
-    axes1[0, 0].set_xlabel(r'$U/U_0$')
-    axes1[0, 0].set_ylabel(r'$y/H$')
-    # axes1[0, 0].set_title(fr'$\angle = {sample_angle} $', fontsize=40)
-    axes1[0, 0].set_aspect('equal', adjustable='box')
+    ax[0, 0].add_patch(cube1)
+    ax[0, 0].add_patch(cube2)
+    ax[0, 0].set_ylim(0, 2)
+    ax[0, 0].set_xlim(0, 15)
+    ax[0, 0].set_xlabel(r'$U/U_0$')
+    ax[0, 0].set_ylabel(r'$y/H$')
+    # ax[0, 0].set_title(fr'$\angle = {sample_angle} $', fontsize=40)
+    ax[0, 0].set_aspect('equal', adjustable='box')
     
     print(f'Plotting mfr profile at angle {angle}')
 
     hf_loc = np.argmin(np.abs(hf[0].alphas-angle))
-    hf_cols = ['b', 'c', 'b', 'c', 'b', 'c', 'b']
     lf_loc = np.argmin(np.abs(lf[0].alphas-angle))
 
     for sample_loc, i in zip(np.arange(0, 14, 1), range(len(mf))):
-        hf_plot, = axes1[0, 0].plot(hf[i].u_interp[hf_loc]+sample_loc, y[i], hf_cols[hf_loc],
+        hf_plot, = ax[0, 0].plot(hf[i].u_interp[hf_loc]+sample_loc, y[i], 'b',
                                     label=fr'LES Profile at ${int(hf[i].alphas[hf_loc])}^\circ$')
-        lf_plot, = axes1[0, 0].plot(lf[i].u_interp[lf_loc]+sample_loc, y[i], 'r',
+        lf_plot, = ax[0, 0].plot(lf[i].u_interp[lf_loc]+sample_loc, y[i], 'r',
                                     label=fr'RANS Profile at ${int(lf[i].alphas[lf_loc])}^\circ$')
-        mf_plot, = axes1[0, 0].plot(mf[i][it*10]+sample_loc, y[i], 'k',
+        mf_plot, = ax[0, 0].plot(mf[i][int(it*10)]+sample_loc, y[i], 'k',
                                     label=fr'MF-MLP Profile at ${int(angle)}^\circ$')
     
-    axes1[0, 0].legend(handles=[mf_plot, hf_plot, lf_plot],
+    ax[0, 0].legend(handles=[mf_plot, hf_plot, lf_plot],
                        frameon=False, ncol=3, loc='lower left',
                        bbox_to_anchor=(0.05, 1.01))
 
     return mf_plot
 
 
-sample_angle = 15
-fig1, axes1 = plt.subplots(1, 1, figsize=(11, 3),
-                           squeeze=False, constrained_layout=True)
+def main():
+    fig1, axes1 = plt.subplots(1, 1, figsize=(11, 3), squeeze=False, constrained_layout=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-a', action='store_true', help='Create animation')
+    parser.add_argument('angle', type=float, help='Angle to sample profiles at', default=15)
+    args = parser.parse_args()
+    sample_angle = args.angle
 
-lfs = []
-hfs = []
-mfs = []
-ys = []
+    lfs = []
+    hfs = []
+    mfs = []
+    ys = []
 
-for sample_location in np.arange(0, 14, 1):
-    print(f'\nProfile at x = {sample_location}')
-    alpha, lf, hf, mf, y = regress_profile(sample_location)
-    lfs.append(lf)
-    hfs.append(hf)
-    mfs.append(mf)
-    ys.append(y)
-    
-anim = animation.FuncAnimation(fig1, draw, fargs=(alpha, hfs, lfs, mfs, ys,), frames=101, interval=1, blit=False)
-# plt.show()
-anim.save('animations/profiles_animation.mp4', fps=5, dpi=400)
+    for sample_location in np.arange(0, 14, 1):
+        print(f'\nProfile at x = {sample_location}')
+        alpha, lf, hf, mf, y = regress_profile(sample_location)
+        lfs.append(lf)
+        hfs.append(hf)
+        mfs.append(mf)
+        ys.append(y)
+
+    if args.a:
+        anim = animation.FuncAnimation(fig1, draw, fargs=(axes1, alpha, hfs, lfs, mfs, ys,), frames=len(alpha), interval=1, blit=False)
+        plt.show()
+        anim.save('animations/profiles_animation.mp4', fps=5, dpi=400)
+    else:
+        draw(sample_angle * len(alpha) / (10 * alpha[-1]), axes1, alpha, hfs, lfs, mfs, ys, )
+        plt.show()
+        fig1.savefig(f'figures/profiles_{sample_angle}.pdf', bbox_inches='tight')
+
+
+if __name__ == "__main__":
+    main()

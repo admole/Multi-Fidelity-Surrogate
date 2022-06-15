@@ -12,6 +12,7 @@ import fonts
 import json
 import glob
 import pprint
+import argparse
 
 
 def get_surface(case, u_inf=1, surface="zNormal", field="UMean"):
@@ -71,35 +72,60 @@ def plot_surface(ax, data, field, angle):
     ax.set_title(r'$\theta=%i$' % angle)
 
 
-def draw(it):
-    ang = RANS_CASES[it]
-    print('angle', ang)
+def draw(it, ax1, ax2, angles):
+    ang = angles[it]
+    print('\nangle', ang)
+
+    if any(x == ang for x in RANS_CASES):
+        print('Plotting RANS velocity')
+        acase = f'RANS/Yaw/a{ang}'
+        velocity = get_surface(acase, field='UMean', surface='yHalf')
+        plot_surface(ax1, velocity, 'UMean', ang)
 
     if any(x == ang for x in LES_CASES):
         print('Plotting LES velocity')
         acase = f'LES/Yaw/a{ang}'
         velocity = get_surface(acase, field='U', surface='yHalf')
-        plot_surface(axes[0, 0], velocity, 'U', ang)
-    else:
-        print('Plotting RANS velocity')
-        print('angle', ang)
-        acase = f'RANS/Yaw/a{ang}'
-        velocity = get_surface(acase, field='UMean', surface='yHalf')
-        plot_surface(axes[0, 0], velocity, 'UMean', ang)
-    
-    
-fig, axes = plt.subplots(1, 1, figsize=(6, 5), squeeze=False, constrained_layout=True)
-RANS_CASES = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34]
-LES_CASES = [0, 10, 20, 30]
+        plot_surface(ax2, velocity, 'U', ang)
+
+
+RANS_CASES = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
+LES_CASES = [0, 5, 10, 15, 20, 25, 30]
+ALL_CASES = list(set(RANS_CASES) | set(LES_CASES))
 
 
 def main():
-    axes[0, 0].set_ylabel(r'$z$')
-    axes[0, 0].set_xlabel(r'$x$')
-    n_cases = len(RANS_CASES)
-    anim = animation.FuncAnimation(fig, draw, frames=n_cases, interval=1, blit=False)
-    # plt.show()
-    anim.save('animations/yaw_animation2.mp4', fps=1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-a', action='store_true', help='Create animation')
+    args = parser.parse_args()
+    if args.a:
+        # Animation
+        fig, axes = plt.subplots(1, 1, figsize=(6, 5), squeeze=False, constrained_layout=True)
+        axes[0, 0].set_ylabel(r'$z$')
+        axes[0, 0].set_xlabel(r'$x$')
+        n_cases = len(ALL_CASES)
+        anim = animation.FuncAnimation(fig, draw, fargs=(axes[0, 0], axes[0, 0], ALL_CASES), frames=n_cases, interval=1, blit=False)
+        anim.save('animations/yaw_animation.mp4', fps=1, dpi=400)
+    else:
+        # Matrix Figure
+        fig, axes = plt.subplots(7, 3, figsize=(10, 20), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
+        fig2, axes2 = plt.subplots(7, 1, figsize=(5, 20), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
+        for i in range(len(ALL_CASES)):
+            rans_loc = np.argmin(np.abs(np.array(RANS_CASES)-ALL_CASES[i]))
+            les_loc = np.argmin(np.abs(np.array(LES_CASES)-ALL_CASES[i]))
+            rans_plot_position = axes[int(np.floor(rans_loc / 3)), int(rans_loc % 3)]
+            les_plot_position = axes2[les_loc, 0]
+            draw(i, rans_plot_position, les_plot_position, ALL_CASES)
+        for i in range(7):
+            axes[i, 0].set_ylabel(r'$z$')
+            axes2[i, 0].set_ylabel(r'$z$')
+        for i in range(3):
+            axes[-1, i].set_xlabel(r'$x$')
+        axes2[-1, 0].set_xlabel(r'$x$')
+
+        plt.show()
+        fig.savefig('figures/velocityslicesRANS.png', bbox_inches='tight')
+        fig2.savefig('figures/velocityslicesLES.png', bbox_inches='tight')
 
 
 if __name__ == "__main__":
