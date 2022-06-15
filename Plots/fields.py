@@ -70,6 +70,7 @@ def plot_surface(ax, data, field, angle):
     ax.set_aspect('equal')
     add_cubes(ax)
     ax.set_title(r'$\theta=%i$' % angle)
+    return contour
 
 
 def draw(it, ax1, ax2, angles):
@@ -80,13 +81,15 @@ def draw(it, ax1, ax2, angles):
         print('Plotting RANS velocity')
         acase = f'RANS/Yaw/a{ang}'
         velocity = get_surface(acase, field='UMean', surface='yHalf')
-        plot_surface(ax1, velocity, 'UMean', ang)
+        contour = plot_surface(ax1, velocity, 'UMean', ang)
 
     if any(x == ang for x in LES_CASES):
         print('Plotting LES velocity')
         acase = f'LES/Yaw/a{ang}'
         velocity = get_surface(acase, field='U', surface='yHalf')
-        plot_surface(ax2, velocity, 'U', ang)
+        contour = plot_surface(ax2, velocity, 'U', ang)
+
+    return contour
 
 
 RANS_CASES = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
@@ -108,20 +111,25 @@ def main():
         anim.save('animations/yaw_animation.mp4', fps=1, dpi=400)
     else:
         # Matrix Figure
-        fig, axes = plt.subplots(7, 3, figsize=(10, 20), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
+        fig, axes = plt.subplots(7, 3, figsize=(12, 20), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
         fig2, axes2 = plt.subplots(7, 1, figsize=(5, 20), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
         for i in range(len(ALL_CASES)):
             rans_loc = np.argmin(np.abs(np.array(RANS_CASES)-ALL_CASES[i]))
             les_loc = np.argmin(np.abs(np.array(LES_CASES)-ALL_CASES[i]))
             rans_plot_position = axes[int(np.floor(rans_loc / 3)), int(rans_loc % 3)]
             les_plot_position = axes2[les_loc, 0]
-            draw(i, rans_plot_position, les_plot_position, ALL_CASES)
+            contour = draw(i, rans_plot_position, les_plot_position, ALL_CASES)
         for i in range(7):
             axes[i, 0].set_ylabel(r'$z$')
             axes2[i, 0].set_ylabel(r'$z$')
         for i in range(3):
             axes[-1, i].set_xlabel(r'$x$')
         axes2[-1, 0].set_xlabel(r'$x$')
+        u_ticks = [0.0, 0.2, 0.4, 0.6, 0.8, 1.0, 1.2, 1.4]
+        cbar1 = fig.colorbar(contour, ax=axes[-1, :], location='bottom', shrink=0.9, aspect=75, ticks=u_ticks, format='%.1f')
+        cbar2 = fig.colorbar(contour, ax=axes2[-1, :], location='bottom', shrink=0.7, aspect=50, ticks=u_ticks, format='%.1f')
+        cbar1.set_label(r'$U_{mag}/U_0$')
+        cbar2.set_label(r'$u_{mag}/U_0$')
 
         plt.show()
         fig.savefig('figures/velocityslicesRANS.png', bbox_inches='tight')
