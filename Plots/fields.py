@@ -69,7 +69,7 @@ def plot_surface(ax, data, field, angle):
     # contour = ax.tricontour(data['x'], data['z'], data[f'{field}_x'], colors='w', linewidths=1, levels=[0])
     ax.set_aspect('equal')
     add_cubes(ax)
-    ax.set_title(r'$\theta=%i$' % angle)
+    ax.annotate(fr'$\theta = {angle}^\circ$', xy=(0.2, 3), xytext=(0.2, 3), size=fonts.BIG_SIZE)
     return contour
 
 
@@ -80,14 +80,16 @@ def draw(it, ax1, ax2, angles):
     if any(x == ang for x in RANS_CASES):
         print('Plotting RANS velocity')
         acase = f'RANS/Yaw/a{ang}'
-        velocity = get_surface(acase, field='UMean', surface='yHalf')
+        velocity = get_surface(acase, field='UMean', surface='yNormal')
         contour = plot_surface(ax1, velocity, 'UMean', ang)
 
     if any(x == ang for x in LES_CASES):
         print('Plotting LES velocity')
         acase = f'LES/Yaw/a{ang}'
-        velocity = get_surface(acase, field='U', surface='yHalf')
-        contour = plot_surface(ax2, velocity, 'U', ang)
+        velocity = get_surface(acase, field='U', surface='yNormal')
+        contour = plot_surface(ax2[0], velocity, 'U', ang)
+        velocity = get_surface(acase, field='UMean', surface='yNormal')
+        contour = plot_surface(ax2[1], velocity, 'UMean', ang)
 
     return contour
 
@@ -111,13 +113,13 @@ def main():
         anim.save('animations/yaw_animation.mp4', fps=1, dpi=400)
     else:
         # Matrix Figure
-        fig, axes = plt.subplots(7, 3, figsize=(12, 20), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
-        fig2, axes2 = plt.subplots(7, 1, figsize=(5, 20), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
+        fig, axes = plt.subplots(7, 3, figsize=(11, 18), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
+        fig2, axes2 = plt.subplots(7, 2, figsize=(8, 18), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
         for i in range(len(ALL_CASES)):
             rans_loc = np.argmin(np.abs(np.array(RANS_CASES)-ALL_CASES[i]))
             les_loc = np.argmin(np.abs(np.array(LES_CASES)-ALL_CASES[i]))
             rans_plot_position = axes[int(np.floor(rans_loc / 3)), int(rans_loc % 3)]
-            les_plot_position = axes2[les_loc, 0]
+            les_plot_position = axes2[les_loc, :]
             contour = draw(i, rans_plot_position, les_plot_position, ALL_CASES)
         for i in range(7):
             axes[i, 0].set_ylabel(r'$z$')
