@@ -42,8 +42,7 @@ def get_cl(case, cube):
     return cl
 
 
-def plot_forces(base, angle, ax):
-    case = f'{base}{angle}'
+def plot_forces(case, ax):
     data1 = get_forces(case, 'cube1')
     data2 = get_forces(case, 'cube2')
     # Plotting Cd
@@ -53,8 +52,13 @@ def plot_forces(base, angle, ax):
     ax.plot(data2['Time'], data2['Cl'], 'b--', label=r'$Cz_2$')
     ax.set_ylabel(r'Force Coefficient')
     ax.set_ylim(-1, 2)
-    ax.set_xlim(45, 90)
+    ax.set_xlim(data1['Time'].iloc[-1]/2, data1['Time'].iloc[-1])
     # ax.legend(frameon=False, ncol=2, loc='upper center')
+
+
+def plot_forces_angle(base, angle, ax):
+    case = f'{base}{angle}'
+    plot_forces(case, ax)
     pad = 5
     ax.annotate(fr'$\theta = {angle}^\circ$', xy=(0, 0.5), xytext=(-ax.yaxis.labelpad - pad, 0),
                 xycoords=ax.yaxis.label, textcoords='offset points',
@@ -120,7 +124,7 @@ def main():
     for i in range(len(angles)):
         angle = angles[i]
         print(angle)
-        plot_forces(base, angle, axes1[i, 0])
+        plot_forces_angle(base, angle, axes1[i, 0])
         axes1[-1, 0].set_xlabel(r'$t\;\frac{U_0}{H}$')
         plot_fft(base, angle, axes1[i, 1])
         axes1[-1, 1].set_xlabel(r'$f\;\frac{H}{U_0}$')

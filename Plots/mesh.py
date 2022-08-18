@@ -40,7 +40,7 @@ fig1, axes1 = plt.subplots(1, numcases, figsize=(numcases*5, 3.5),
 fig2, axes2 = plt.subplots(1, numcases, figsize=(numcases*5, 3.5),
                            squeeze=False, constrained_layout=True, sharex=True, sharey=True)
 
-fig3, axes3 = plt.subplots(1, 1, figsize=(5, 3.5),
+fig3, axes3 = plt.subplots(1, 1, figsize=(5, 3),
                            squeeze=False, constrained_layout=True, sharex=True, sharey=True)
 
 
@@ -54,13 +54,16 @@ for i in range(numcases):
     ncells[i] = get_ncells(case)
     cd1[i] = forces.get_cd(case, 'cube1')
     cd2[i] = forces.get_cd(case, 'cube2')
+    for ax in [axes1, axes2]:
+        ax[0, i].set_title(fr'$N_c \approx {int(ncells[i])/1000000:.1f} \times 10 ^6$')
 
-axes3[0, 0].plot(ncells, cd1, '.r', markersize=12, label='cube1')
-axes3[0, 0].plot(ncells, cd2, '.b', markersize=12, label='cube2')
+axes3[0, 0].plot(ncells, cd1, color='k', marker='o', mfc='r', mec='r', ms=10, label='cube1')
+axes3[0, 0].plot(ncells, cd2, color='k', marker='o', mfc='b', mec='b', ms=10, label='cube2')
 axes3[0, 0].set_xlabel('Number of cells')
 axes3[0, 0].set_ylabel('Cd')
 axes3[0, 0].set_ylim(bottom=0)
-axes3[0, 0].legend(frameon=True)
+axes3[0, 0].legend(frameon=False)
 
 plt.show()
-# fig1.savefig('figures/Ubulk_time.pdf', bbox_inches='tight')
+fig2.savefig('figures/meshCf.pdf', bbox_inches='tight')
+fig3.savefig('figures/mesh.pdf', bbox_inches='tight')

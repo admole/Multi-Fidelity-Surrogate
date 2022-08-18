@@ -1,17 +1,17 @@
 [
   {
-    "Name": "OrigionalMesh",
+    "Name": "CoarserMesh",
     "RASModel": "kOmegaSST",
     "Ncells": {
         "Nxi": 10,
-        "Nxc": 40,
-        "Nxb": 25,
-        "Nxo": 20,
-        "Nyl": 85,
-        "Nyu": 15,
-        "Nzo": 15,
-        "Nzc": 40,
-        "Nnc": 75
+        "Nxc": 20,
+        "Nxb": 15,
+        "Nxo": 10,
+        "Nyl": 40,
+        "Nyu": 10,
+        "Nzo": 10,
+        "Nzc": 20,
+        "Nnc": 40
         }
   },
   {
@@ -29,19 +29,19 @@
         "Nnc": 60
         }
   },
-    {
-    "Name": "CoarserMesh",
+     {
+    "Name": "OrigionalMesh",
     "RASModel": "kOmegaSST",
     "Ncells": {
         "Nxi": 10,
-        "Nxc": 20,
-        "Nxb": 15,
-        "Nxo": 10,
-        "Nyl": 40,
-        "Nyu": 10,
-        "Nzo": 10,
-        "Nzc": 20,
-        "Nnc": 40
+        "Nxc": 40,
+        "Nxb": 25,
+        "Nxo": 20,
+        "Nyl": 85,
+        "Nyu": 15,
+        "Nzo": 15,
+        "Nzc": 40,
+        "Nnc": 75
         }
   },
   {
