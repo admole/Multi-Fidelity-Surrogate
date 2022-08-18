@@ -1,6 +1,7 @@
 class MFRegress:
     def __init__(self, x_lf, lf, x_hf, hf,
-                 embedding_theory=True):
+                 embedding_theory=True,
+                 gradient=False):
         import numpy as np
 
         self.x_lf = x_lf
@@ -8,9 +9,10 @@ class MFRegress:
         self.x_hf = x_hf
         self.hf = hf
         self.embedding_theory = embedding_theory
+        self.gradient = gradient
         xmin = min(min(self.x_lf), min(self.x_hf))
         xmax = max(max(self.x_lf), max(self.x_hf))
-        self.x = np.linspace(xmin, xmax, 1000)[:, np.newaxis]
+        self.x = np.linspace(xmin, xmax, 1001)[:, np.newaxis]
 
     def prep(self):
         from sklearn.preprocessing import MinMaxScaler
@@ -101,10 +103,11 @@ class MFRegress:
         hidden_layers2 = (20, 20, 20, 20)
 
         if len(np.shape(self.lf)) == 1:
-            reshape = True
+            single = True
+            print('single')
         else:
-            reshape = False
-
+            single = False
+            
         scaler, datascaler = self.prep()
 
         mlpr_lf = MLPRegressor(activation=activation,
@@ -119,19 +122,27 @@ class MFRegress:
                                max_iter=5000).fit(self.x_hf, self.hf)
 
         l1mean = mlpr_lf.predict(self.x_hf)
-        if reshape:
+        if single:
             l1mean = l1mean.reshape(-1, 1)
-
+            
+        l2_train = np.hstack((self.x_hf, l1mean))
+        
         if self.embedding_theory:
             l1mean_shift1 = mlpr_lf.predict(self.x_hf + 0.02)
             l1mean_shift2 = mlpr_lf.predict(self.x_hf + 0.04)
-            if reshape:
+            l1mean_shift3 = mlpr_lf.predict(self.x_hf + 0.1)
+            if single:
                 l1mean_shift1 = l1mean_shift1.reshape(-1, 1)
                 l1mean_shift2 = l1mean_shift2.reshape(-1, 1)
-            l2_train = np.hstack((self.x_hf, l1mean, l1mean_shift1, l1mean_shift2))
-        else:
-            l2_train = np.hstack((self.x_hf, l1mean))
-
+                l1mean_shift3 = l1mean_shift3.reshape(-1, 1)
+            l2_train = np.concatenate((l2_train, l1mean_shift1, l1mean_shift2, l1mean_shift3), axis=1)
+            
+        if self.gradient:
+            l1mean_gradient = np.gradient(l1mean, axis=1)
+            if single:
+                l1mean_gradient = l1mean_gradient.reshape(-1, 1)
+            l2_train = np.concatenate((l2_train, l1mean_gradient), axis=1)
+                        
         mlpr_mf_nlin = MLPRegressor(activation=activation,
                                     hidden_layer_sizes=hidden_layers2,
                                     solver=solver,
@@ -141,22 +152,30 @@ class MFRegress:
 
         pred_hf_mean = mlpr_hf.predict(self.x)
         pred_lf_mean = mlpr_lf.predict(self.x)
-        if reshape:
+        if single:
             pred_hf_mean = pred_hf_mean.reshape(-1, 1)
             pred_lf_mean = pred_lf_mean.reshape(-1, 1)
+
+        l2_test = np.hstack((self.x, pred_lf_mean))
 
         if self.embedding_theory:
             pred_lf_mean_shift1 = mlpr_lf.predict(self.x + 0.02)
             pred_lf_mean_shift2 = mlpr_lf.predict(self.x + 0.04)
-            if reshape:
+            pred_lf_mean_shift3 = mlpr_lf.predict(self.x + 0.1)
+            if single:
                 pred_lf_mean_shift1 = pred_lf_mean_shift1.reshape(-1, 1)
                 pred_lf_mean_shift2 = pred_lf_mean_shift2.reshape(-1, 1)
-            l2_test = np.hstack((self.x, pred_lf_mean, pred_lf_mean_shift1, pred_lf_mean_shift2))
-        else:
-            l2_test = np.hstack((self.x, pred_lf_mean))
+                pred_lf_mean_shift3 = pred_lf_mean_shift3.reshape(-1, 1)
+            l2_test = np.concatenate((l2_test, pred_lf_mean_shift1, pred_lf_mean_shift2, pred_lf_mean_shift3), axis=1)
+            
+        if self.gradient:
+            pred_lf_mean_gradient = np.gradient(pred_lf_mean, axis=1)
+            if single:
+                pred_lf_mean_gradient = pred_lf_mean_gradient.reshape(-1, 1)
+            l2_test = np.concatenate((l2_test, pred_lf_mean_gradient), axis=1)
 
         pred_mf_mean = mlpr_mf_nlin.predict(l2_test)
-        if reshape:
+        if single:
             pred_mf_mean = pred_mf_mean.reshape(-1, 1)
 
         pred_lf_std = np.zeros(len(pred_lf_mean))
