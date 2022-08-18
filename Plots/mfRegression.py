@@ -92,15 +92,14 @@ class MFRegress:
 
         return self.x, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std
 
-    def mfmlp(self):
+    def mfmlp(self,
+              hidden_layers1 = (20, 50, 50, 50, 20),
+              hidden_layers2 = (20, 20, 20, 20),
+              solver = 'lbfgs',
+              activation = 'tanh'
+             ):
         from sklearn.neural_network import MLPRegressor
         import numpy as np
-
-        solver = 'lbfgs'
-        activation = 'tanh'
-        # activation = 'relu'
-        hidden_layers1 = (20, 50, 50, 50, 20)
-        hidden_layers2 = (20, 20, 20, 20)
 
         if len(np.shape(self.lf)) == 1:
             single = True
