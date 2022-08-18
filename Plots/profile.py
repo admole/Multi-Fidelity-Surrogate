@@ -38,7 +38,7 @@ class Profiles:
         print(f'Collected {self.n_cases} profiles from {self.model}')
 
     def interpolate_velocity(self, interp_to):
-        for i, y, u in zip(range(self.n_cases), self.y, self.u):
+        for i in range(self.n_cases):
             self.u_interp.append(np.interp(interp_to, self.y[i], self.u[i]))
 
     def training_split(self):
