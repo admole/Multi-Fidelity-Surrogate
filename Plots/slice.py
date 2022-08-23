@@ -74,39 +74,55 @@ def regress_slice(sample_location,):
                         np.array(les_training_velocity),
                         embedding_theory=True,)
     
-    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp()
+    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp()
     return alpha, rans_slices, les_slices, mf_mean, rans_slices.grid[0]
 
 
-def draw(it, ax, angles, hf, lf, mf, grid):
+def draw(it, fig, ax, angles, hf, lf, mf, grid):
     angle = angles[int(it*10)]
     print(f'Plotting mfr slice at angle {angle}')
 
     hf_loc = np.argmin(np.abs(hf.alphas-angle))
     lf_loc = np.argmin(np.abs(lf.alphas-angle))
 
-    hf_plot = ax[0, 0].tricontourf(grid[0], grid[1], hf.u_interp[hf_loc],
-                                   cmap='seismic', levels=np.arange(-1, 1.5, 0.05))
+    lf_plot = ax[0, 0].tricontourf(grid[0], grid[1], lf.u_interp[lf_loc],
+                                   cmap='inferno', levels=np.arange(-0.5, 1.5, 0.01))
+    hf_plot = ax[0, 1].tricontourf(grid[0], grid[1], hf.u_interp[hf_loc],
+                                   cmap='inferno', levels=np.arange(-0.5, 1.5, 0.01))
     mf_plot = ax[1, 0].tricontourf(grid[0], grid[1], mf[int(it*10)],
-                                   cmap='seismic', levels=np.arange(-1, 1.5, 0.05))
+                                   cmap='inferno', levels=np.arange(-0.5, 1.5, 0.01))
+    diff_plot = ax[1, 1].tricontourf(grid[0], grid[1], mf[int(it*10)] - hf.u_interp[hf_loc],
+                                     cmap='seismic', levels=np.arange(-0.5, 0.5, 0.01))
 
-    # hf.u_interp[hf_loc], grid
-    # lf.u_interp[lf_loc], grid
-    # mf[int(it*10)], grid
+    ax[0, 0].annotate(fr'RANS', xy=(0.2, -4), xytext=(0.2, -4), size=fonts.BIG_SIZE)
+    ax[0, 1].annotate(fr'LES', xy=(0.2, -4), xytext=(0.2, -4), size=fonts.BIG_SIZE)
+    ax[1, 0].annotate(fr'MF-GPR', xy=(0.2, -4), xytext=(0.2, -4), size=fonts.BIG_SIZE)
+    ax[1, 1].annotate(fr'MF-GPR - LES', xy=(0.2, -4), xytext=(0.2, -4), size=fonts.BIG_SIZE)
 
+    u_ticks = [-1, -0.5, 0.0, 0.5, 1.0, 1.5]
+    d_ticks = [-0.4, -0.2, 0.0, 0.2, 0.4]
+    cbar1 = fig.colorbar(hf_plot, ax=ax[0, 1], location='right', shrink=0.9, aspect=50, ticks=u_ticks, format='%.1f')
+    cbar2 = fig.colorbar(diff_plot, ax=ax[1, 1], location='right', shrink=0.9, aspect=50, ticks=d_ticks, format='%.1f')
+    cbar1.set_label(r'$U/U_0$')
+    cbar2.set_label(r'$U/U_0$')
+
+    for ai in ax[:]:
+        for a in ai[:]:
+            # a.clear()
+            fields.add_cubes(a, 'y')
+            a.set_aspect('equal', adjustable='box')
     for a in ax[:, 0]:
-        # a.clear()
-        fields.add_cubes(a, 'y')
-        a.set_xlabel(r'$x/H$')
         a.set_ylabel(r'$z/H$')
-        # a.set_title(fr'$\angle = {sample_angle} $', fontsize=40)
-        a.set_aspect('equal', adjustable='box')
+    for a in ax[-1, :]:
+        a.set_xlabel(r'$x/H$')
 
     return mf_plot
 
 
 def main():
-    fig1, axes1 = plt.subplots(2, 1, figsize=(11, 7), squeeze=False, constrained_layout=True)
+    fig1, axes1 = plt.subplots(2, 2, figsize=(11.5, 7),
+                               squeeze=False, constrained_layout=True,
+                               sharex='all', sharey='all')
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', action='store_true', help='Create animation')
     parser.add_argument('angle', type=float, help='Angle to sample slices at', default=15, nargs='?')
@@ -118,15 +134,15 @@ def main():
     print(f'\nSlice {plane}')
     alpha, lf, hf, mf, grid = regress_slice(plane)
 
-
     if args.a:
-        anim = animation.FuncAnimation(fig1, draw, fargs=(axes1, alpha, hf, lf, mf, grid,), frames=len(alpha), interval=1, blit=False)
+        anim = animation.FuncAnimation(fig1, draw, fargs=(fig1, axes1, alpha, hf, lf, mf, grid,),
+                                       frames=len(alpha), interval=1, blit=False)
         plt.show()
         anim.save('animations/slices_animation.mp4', fps=5, dpi=400)
     else:
-        draw(sample_angle * len(alpha) / (10 * alpha[-1]), axes1, alpha, hf, lf, mf, grid, )
+        draw(sample_angle * len(alpha) / (10 * alpha[-1]), fig1, axes1, alpha, hf, lf, mf, grid, )
         plt.show()
-        fig1.savefig(f'figures/slices_{sample_angle}.pdf', bbox_inches='tight')
+        fig1.savefig(f'figures/slices_{sample_angle}.png', bbox_inches='tight')
 
 
 if __name__ == "__main__":
