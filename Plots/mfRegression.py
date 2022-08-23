@@ -46,8 +46,14 @@ class MFRegress:
                                                       CompoundKernel, Kernel,
                                                       Product, Sum)
 
+        if len(np.shape(self.lf)) == 1:
+            single = True
+            print('single')
+        else:
+            single = False
+
         kernel_lf = Matern()
-        kernel_hf = Matern()
+        kernel_hf = Matern(length_scale_bounds=(0.25, 1e2))
 
         scaler, datascaler = self.prep()
 
@@ -57,6 +63,7 @@ class MFRegress:
         gpr_hf = GaussianProcessRegressor(kernel=kernel_hf,
                                           n_restarts_optimizer=2000,
                                           normalize_y=True).fit(self.x_hf, self.hf)
+        # print(gpr_hf.kernel_.length_scale)
 
         l1mean = gpr_lf.predict(self.x_hf)
 
@@ -70,17 +77,33 @@ class MFRegress:
         k_mf = kernel_hf * kernel_hf + kernel_hf
         gpr_mf_l2 = GaussianProcessRegressor(kernel=k_mf, n_restarts_optimizer=200, normalize_y=True).fit(l2_train, self.hf)
 
-        pred_hf_mean, pred_hf_std = gpr_hf.predict(self.x, return_std=True)
-        pred_lf_mean, pred_lf_std = gpr_lf.predict(self.x, return_std=True)
+        pred_hf_mean = gpr_hf.predict(self.x, return_std=single)
+        pred_lf_mean = gpr_lf.predict(self.x, return_std=single)
+
+        if single:
+            pred_lf_std = pred_lf_mean[1]
+            pred_lf_mean = pred_lf_mean[0]
+            pred_hf_std = pred_hf_mean[1]
+            pred_hf_mean = pred_hf_mean[0]
+        else:
+            pred_lf_std = np.zeros(len(pred_lf_mean))
+            pred_hf_std = np.zeros(len(pred_hf_mean))
 
         if self.embedding_theory:
-            pred_lf_mean_shift1, pred_lf_std_shift1 = gpr_lf.predict(self.x + 0.02, return_std=True)
-            pred_lf_mean_shift2, pred_lf_std_shift2 = gpr_lf.predict(self.x - 0.02, return_std=True)
+            pred_lf_mean_shift1 = gpr_lf.predict(self.x + 0.02, return_std=False)
+            pred_lf_mean_shift2 = gpr_lf.predict(self.x - 0.02, return_std=False)
             l2_test = np.hstack((self.x, pred_lf_mean, pred_lf_mean_shift1, pred_lf_mean_shift2))
         else:
             l2_test = np.hstack((self.x, pred_lf_mean))
 
-        pred_mf_mean, pred_mf_std = gpr_mf_l2.predict(l2_test, return_std=True)
+        pred_mf_mean = gpr_mf_l2.predict(l2_test, return_std=single)
+
+        if single:
+            pred_mf_std = pred_mf_mean[1]
+            pred_mf_mean = pred_mf_mean[0]
+
+        else:
+            pred_mf_std = np.zeros(len(pred_mf_mean))
 
         self.x = scaler.inverse_transform(self.x)
         pred_lf_mean = datascaler.inverse_transform(pred_lf_mean)
@@ -93,11 +116,11 @@ class MFRegress:
         return self.x, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std
 
     def mfmlp(self,
-              hidden_layers1 = (20, 50, 50, 50, 20),
-              hidden_layers2 = (20, 20, 20, 20),
-              solver = 'lbfgs',
-              activation = 'tanh'
-             ):
+              hidden_layers1=(20, 50, 50, 50, 20),
+              hidden_layers2=(20, 20, 20, 20),
+              solver='lbfgs',
+              activation='tanh'
+              ):
         from sklearn.neural_network import MLPRegressor
         import numpy as np
 
