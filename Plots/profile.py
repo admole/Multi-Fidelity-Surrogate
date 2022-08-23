@@ -51,7 +51,7 @@ class Profiles:
         return alpha_train, velocity_train
 
 
-def regress_profile(sample_location,):
+def regress_profile(sample_location, gpr):
     rans_profiles = Profiles('RANS', sample_location)
     rans_profiles.collect_profiles()
     les_profiles = Profiles('LES', sample_location)
@@ -67,12 +67,16 @@ def regress_profile(sample_location,):
                         np.array(les_training_alpha),
                         np.array(les_training_velocity),
                         embedding_theory=True,)
-    
-    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp()
+
+    if gpr:
+        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp()
+    else:
+        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp()
+
     return alpha, rans_profiles, les_profiles, mf_mean, rans_profiles.y[0]
 
 
-def draw(it, ax, angles, hf, lf, mf, y):
+def draw(it, ax, angles, hf, lf, mf, y, model):
     angle = angles[int(it*10)]
     ax[0, 0].clear()
 
@@ -98,7 +102,7 @@ def draw(it, ax, angles, hf, lf, mf, y):
         lf_plot, = ax[0, 0].plot(lf[i].u_interp[lf_loc]+sample_loc, y[i], 'r',
                                     label=fr'RANS Profile at ${int(lf[i].alphas[lf_loc])}^\circ$')
         mf_plot, = ax[0, 0].plot(mf[i][int(it*10)]+sample_loc, y[i], 'k',
-                                    label=fr'MF-MLP Profile at ${int(angle)}^\circ$')
+                                    label=fr'MF-{model} Profile at ${int(angle)}^\circ$')
     
     ax[0, 0].legend(handles=[mf_plot, hf_plot, lf_plot],
                        frameon=False, ncol=3, loc='lower left',
@@ -111,9 +115,14 @@ def main():
     fig1, axes1 = plt.subplots(1, 1, figsize=(11, 3), squeeze=False, constrained_layout=True)
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', action='store_true', help='Create animation')
+    parser.add_argument('-gpr', action='store_true', help='Use GPR (default is MLP)')
     parser.add_argument('angle', type=float, help='Angle to sample profiles at', default=15, nargs='?')
     args = parser.parse_args()
     sample_angle = args.angle
+    if args.gpr:
+        model = 'GPR'
+    else:
+        model = 'MLP'
 
     lfs = []
     hfs = []
@@ -122,20 +131,20 @@ def main():
 
     for sample_location in np.arange(0, 14, 1):
         print(f'\nProfile at x = {sample_location}')
-        alpha, lf, hf, mf, y = regress_profile(sample_location)
+        alpha, lf, hf, mf, y = regress_profile(sample_location, args.gpr)
         lfs.append(lf)
         hfs.append(hf)
         mfs.append(mf)
         ys.append(y)
 
     if args.a:
-        anim = animation.FuncAnimation(fig1, draw, fargs=(axes1, alpha, hfs, lfs, mfs, ys,), frames=len(alpha), interval=1, blit=False)
+        anim = animation.FuncAnimation(fig1, draw, fargs=(axes1, alpha, hfs, lfs, mfs, ys, model), frames=int(len(alpha)/10), blit=False)
         plt.show()
-        anim.save('animations/profiles_animation.mp4', fps=5, dpi=400)
+        anim.save(f'animations/profiles_{model}_animation.mp4', fps=5, dpi=400)
     else:
-        draw(sample_angle * len(alpha) / (10 * alpha[-1]), axes1, alpha, hfs, lfs, mfs, ys, )
+        draw(sample_angle * len(alpha) / (10 * alpha[-1]), axes1, alpha, hfs, lfs, mfs, ys, model)
         plt.show()
-        fig1.savefig(f'figures/profiles_{sample_angle}.pdf', bbox_inches='tight')
+        fig1.savefig(f'figures/profiles_{model}_{int(sample_angle)}.pdf', bbox_inches='tight')
 
 
 if __name__ == "__main__":
