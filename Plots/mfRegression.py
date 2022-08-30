@@ -54,6 +54,7 @@ class MFRegress:
 
         kernel_lf = Matern()
         kernel_hf = Matern(length_scale_bounds=(0.25, 1e2))
+        kernel_hf = DotProduct() ** 1 * Matern()
 
         scaler, datascaler = self.prep()
 
