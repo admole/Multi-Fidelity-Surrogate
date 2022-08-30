@@ -50,11 +50,11 @@ def get_probe(case, position, field):
 
 def add_cubes(ax, normal='y'):
     if normal == 'y':
-        cube1 = patches.Rectangle((2, -0.5), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='/////')
-        cube2 = patches.Rectangle((7, -0.5), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='/////')
+        cube1 = patches.Rectangle((2, -0.5), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='/////', zorder=10)
+        cube2 = patches.Rectangle((7, -0.5), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='/////', zorder=10)
     elif normal == 'z':
-        cube1 = patches.Rectangle((2, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='/////')
-        cube2 = patches.Rectangle((7, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='/////')
+        cube1 = patches.Rectangle((2, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='/////', zorder=10)
+        cube2 = patches.Rectangle((7, 0), 1, 1, linewidth=1, edgecolor='k', fc='lightgrey', hatch='/////', zorder=10)
     else:
         print('normal must be y or z')
     ax.add_patch(cube1)
@@ -64,7 +64,7 @@ def add_cubes(ax, normal='y'):
 def plot_surface(ax, data, field, angle):
     normal = 'z' if SURFACE[0] == 'y' else 'y'
     magnitude = np.sqrt(data[f'{field}_x']**2 + data[f'{field}_y']**2 + data[f'{field}_z']**2)
-    contour = ax.tricontourf(data['x'], data[normal], magnitude, cmap='inferno', levels=np.arange(0, 1.5, 0.05))
+    contour = ax.tricontourf(data['x'], data[normal], magnitude, cmap='inferno', levels=np.arange(0, 1.5, 0.01))
     # contour = ax.tricontour(data['x'], data[normal], data[f'{field}_x'], colors='k', linewidths=1, levels=[0])
     ax.set_aspect('equal')
     add_cubes(ax, SURFACE[0])
@@ -95,10 +95,8 @@ def draw(it, ax1, ax2, angles):
 
 RANS_CASES = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
 LES_CASES = [0, 5, 10, 15, 20, 25, 30]
-RANS_CASES = [0, 2, 4,]
-LES_CASES = [0,]
 ALL_CASES = list(set(RANS_CASES) | set(LES_CASES))
-SURFACE = 'yNormal'  # 'yHalf' 'zNormal'
+SURFACE = 'yHalf'  # 'yNormal' 'yHalf' 'zNormal'
 # contours on z-normal plane showing strong grid artifacts (maybe triangulation)
 
 
