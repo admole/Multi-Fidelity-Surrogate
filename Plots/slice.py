@@ -81,30 +81,42 @@ def regress_slice(sample_location,):
 def draw(it, fig, ax, angles, hf, lf, mf, grid):
     angle = angles[int(it*10)]
     print(f'Plotting mfr slice at angle {angle}')
+    for a in ax.flatten():
+        a.clear()
 
     hf_loc = np.argmin(np.abs(hf.alphas-angle))
     lf_loc = np.argmin(np.abs(lf.alphas-angle))
 
     lf_plot = ax[0, 0].tricontourf(grid[0], grid[1], lf.u_interp[lf_loc],
-                                   cmap='inferno', levels=np.arange(-0.5, 1.5, 0.01))
+                                   cmap='inferno', levels=np.arange(-0.75, 1.5, 0.01))
     hf_plot = ax[0, 1].tricontourf(grid[0], grid[1], hf.u_interp[hf_loc],
-                                   cmap='inferno', levels=np.arange(-0.5, 1.5, 0.01))
+                                   cmap='inferno', levels=np.arange(-0.75, 1.5, 0.01))
     mf_plot = ax[1, 0].tricontourf(grid[0], grid[1], mf[int(it*10)],
-                                   cmap='inferno', levels=np.arange(-0.5, 1.5, 0.01))
-    diff_plot = ax[1, 1].tricontourf(grid[0], grid[1], mf[int(it*10)] - hf.u_interp[hf_loc],
-                                     cmap='seismic', levels=np.arange(-0.5, 0.5, 0.01))
+                                   cmap='inferno', levels=np.arange(-0.75, 1.5, 0.01))
+    # diff_plot = ax[1, 1].tricontourf(grid[0], grid[1], mf[int(it*10)] - hf.u_interp[hf_loc],
+    #                                  cmap='seismic', levels=np.arange(-0.5, 0.5, 0.01))
+
+    lf_plot2 = ax[1, 1].tricontour(grid[0], grid[1], lf.u_interp[lf_loc],
+                                   colors='b', levels=[-0.0001, 0.5], linewidths=2)
+    hf_plot2 = ax[1, 1].tricontour(grid[0], grid[1], hf.u_interp[hf_loc],
+                                   colors='r', levels=[-0.0001, 0.5], linewidths=2)
+    mf_plot2 = ax[1, 1].tricontour(grid[0], grid[1], mf[int(it*10)],
+                                   colors='k', levels=[-0.0001, 0.5], linewidths=2)
 
     ax[0, 0].annotate(fr'RANS', xy=(0.2, -4), xytext=(0.2, -4), size=fonts.BIG_SIZE)
     ax[0, 1].annotate(fr'LES', xy=(0.2, -4), xytext=(0.2, -4), size=fonts.BIG_SIZE)
     ax[1, 0].annotate(fr'MF-GPR', xy=(0.2, -4), xytext=(0.2, -4), size=fonts.BIG_SIZE)
-    ax[1, 1].annotate(fr'MF-GPR - LES', xy=(0.2, -4), xytext=(0.2, -4), size=fonts.BIG_SIZE)
+
+    labels = [r'RANS', r'LES', r'MF-GPR']
+    lf_plot2.collections[1].set_label(labels[0])
+    hf_plot2.collections[1].set_label(labels[1])
+    mf_plot2.collections[1].set_label(labels[2])
+
+    plt.legend(loc='lower left', ncol=3, columnspacing=0.5, frameon=False)
 
     u_ticks = [-1, -0.5, 0.0, 0.5, 1.0, 1.5]
-    d_ticks = [-0.4, -0.2, 0.0, 0.2, 0.4]
     cbar1 = fig.colorbar(hf_plot, ax=ax[0, 1], location='right', shrink=0.9, aspect=50, ticks=u_ticks, format='%.1f')
-    cbar2 = fig.colorbar(diff_plot, ax=ax[1, 1], location='right', shrink=0.9, aspect=50, ticks=d_ticks, format='%.1f')
     cbar1.set_label(r'$U/U_0$')
-    cbar2.set_label(r'$U/U_0$')
 
     for ai in ax[:]:
         for a in ai[:]:
@@ -116,11 +128,13 @@ def draw(it, fig, ax, angles, hf, lf, mf, grid):
     for a in ax[-1, :]:
         a.set_xlabel(r'$x/H$')
 
+    fig.suptitle(fr'$\theta = {int(angle)}$')
+
     return mf_plot
 
 
 def main():
-    fig1, axes1 = plt.subplots(2, 2, figsize=(11.5, 7),
+    fig1, axes1 = plt.subplots(2, 2, figsize=(11.5, 7.8),
                                squeeze=False, constrained_layout=True,
                                sharex='all', sharey='all')
     parser = argparse.ArgumentParser()
@@ -136,8 +150,8 @@ def main():
 
     if args.a:
         anim = animation.FuncAnimation(fig1, draw, fargs=(fig1, axes1, alpha, hf, lf, mf, grid,),
-                                       frames=len(alpha), interval=1, blit=False)
-        plt.show()
+                                       frames=int(len(alpha)/10), interval=1, blit=False)
+        # plt.show()
         anim.save('animations/slices_animation.mp4', fps=5, dpi=400)
     else:
         draw(sample_angle * len(alpha) / (10 * alpha[-1]), fig1, axes1, alpha, hf, lf, mf, grid, )
