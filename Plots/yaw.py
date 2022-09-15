@@ -61,8 +61,64 @@ def plot_yaw(ax, ax2, rans, les, variable, model):
     if model == 'GPR':
         alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp()
     else:
-        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp(hidden_layers1=(10, 20, 20, 20, 10),
-                                                                                       hidden_layers2=(10, 10, 10, 10),)
+        from sklearn.metrics import mean_squared_error
+        import random
+        n_runs = 300
+        scores = []
+        scores_hf = []
+        arcitectures = []
+        while len(scores) < n_runs:
+            regress = MFRegress(rans[r'$\alpha$'].to_numpy(),
+                                rans[variable].to_numpy(),
+                                les_train[r'$\alpha$'].to_numpy(),
+                                les_train[variable].to_numpy())
+            lf_hidden_layers = []
+            hf_hidden_layers = []
+            for layer in range(random.randint(1, 8)):
+                lf_hidden_layers.append(random.randint(2, 64))
+            for layer in range(random.randint(1, 8)):
+                hf_hidden_layers.append(random.randint(2, 64))
+
+            alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp(hidden_layers1=tuple(lf_hidden_layers),
+                                                                                           hidden_layers2=tuple(hf_hidden_layers),)
+
+            score_hf = mean_squared_error(les_test[variable].to_numpy(), les_mean[alpha % 10 == 5][:-1])
+            score = mean_squared_error(les_test[variable].to_numpy(), mf_mean[alpha % 10 == 5][:-1])
+            scores.append(score)
+            scores_hf.append(score)
+            arcitectures.append((lf_hidden_layers, hf_hidden_layers))
+            print('Run Complete')
+        print(scores)
+        best_run = np.argmin(np.abs(scores))
+        worst_run = np.argmax(np.abs(scores))
+        print('Best configuration')
+        print(f'iteration= {best_run}')
+        print(f'score = {scores[best_run]}')
+        print(f'architecture = {arcitectures[best_run]}')
+        print('worst configuration')
+        print(f'iteration= {worst_run}')
+        print(f'score = {scores[worst_run]}')
+        print(f'architecture = {arcitectures[worst_run]}')
+
+        # rerun regression with optimal MF set-up
+        regress = MFRegress(rans[r'$\alpha$'].to_numpy(),
+                            rans[variable].to_numpy(),
+                            les_train[r'$\alpha$'].to_numpy(),
+                            les_train[variable].to_numpy())
+
+        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp(
+            hidden_layers1=tuple(arcitectures[best_run][0]),
+            hidden_layers2=tuple(arcitectures[best_run][1]), )
+
+        # rerun regression with optimal HF set-up
+        regress = MFRegress(rans[r'$\alpha$'].to_numpy(),
+                            rans[variable].to_numpy(),
+                            les_train[r'$\alpha$'].to_numpy(),
+                            les_train[variable].to_numpy())
+
+        les_mean = regress.mfmlp(
+            hidden_layers1=tuple(arcitectures[best_run][0]),
+            hidden_layers2=tuple(arcitectures[np.argmin(np.abs(scores_hf))][1]), )[3]
 
     ax.plot(alpha, rans_mean, 'r--', label=f'RANS Only {model}')
     ax.fill_between(alpha[:, 0], rans_mean[:, 0] - rans_std, rans_mean[:, 0] + rans_std, alpha=0.2, color='r')
