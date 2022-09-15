@@ -63,12 +63,22 @@ def add_cubes(ax, normal='y'):
 
 def plot_surface(ax, data, field, angle):
     normal = 'z' if SURFACE[0] == 'y' else 'y'
-    magnitude = np.sqrt(data[f'{field}_x']**2 + data[f'{field}_y']**2 + data[f'{field}_z']**2)
-    contour = ax.tricontourf(data['x'], data[normal], magnitude, cmap='inferno', levels=np.arange(0, 1.5, 0.01))
+    if field == 'UMean' or field == 'U':
+        magnitude = np.sqrt(data[f'{field}_x']**2 + data[f'{field}_y']**2 + data[f'{field}_z']**2)
+        loc1, loc2 = data['x'], data[normal]
+    elif field == 'kMean':
+        magnitude = data[f'{field}']
+        loc1, loc2 = data['x'], data[normal]
+    elif field == 'UPrime2Mean':
+        magnitude = 0.5 * (data[f'yy'] + data[f'{field}_2'] + data[f'{field}_2'])
+        loc1, loc2 = data['xx'], data[f'x{normal}']
+
+    contour = ax.tricontourf(loc1, loc2, magnitude, cmap='inferno', levels=np.arange(0, 1.5, 0.01), antialiased=False)
     # contour = ax.tricontour(data['x'], data[normal], data[f'{field}_x'], colors='k', linewidths=1, levels=[0])
     ax.set_aspect('equal')
+    ax.set_ylim(-4.25, 4.25)
     add_cubes(ax, SURFACE[0])
-    ax.annotate(fr'$\theta = {angle}^\circ$', xy=(0.2, 3), xytext=(0.2, 3), size=fonts.BIG_SIZE)
+    ax.annotate(fr'$\alpha = {angle}^\circ$', xy=(0.2, 3), xytext=(0.2, 3), size=fonts.BIG_SIZE)
     return contour
 
 
@@ -96,7 +106,7 @@ def draw(it, ax1, ax2, angles):
 RANS_CASES = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
 LES_CASES = [0, 5, 10, 15, 20, 25, 30]
 ALL_CASES = list(set(RANS_CASES) | set(LES_CASES))
-SURFACE = 'yHalf'  # 'yNormal' 'yHalf' 'zNormal'
+SURFACE = 'yNormal'  # 'yNormal' 'yHalf' 'zNormal'
 # contours on z-normal plane showing strong grid artifacts (maybe triangulation)
 
 
@@ -114,7 +124,7 @@ def main():
         anim.save('animations/yaw_animation.mp4', fps=1, dpi=400)
     else:
         # Matrix Figure
-        fig, axes = plt.subplots(7, 3, figsize=(11, 18), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
+        fig, axes = plt.subplots(7, 3, figsize=(12, 18), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
         fig2, axes2 = plt.subplots(7, 2, figsize=(8, 18), squeeze=False, constrained_layout=True, sharex=True, sharey=True)
         for i in range(len(ALL_CASES)):
             rans_loc = np.argmin(np.abs(np.array(RANS_CASES)-ALL_CASES[i]))
@@ -136,8 +146,8 @@ def main():
         cbar2.set_label(r'$u_{mag}/U_0$')
 
         plt.show()
-        fig.savefig(f'figures/velocityslices-{SURFACE}-RANS.png', bbox_inches='tight')
-        fig2.savefig(f'figures/velocityslices-{SURFACE}-LES.png', bbox_inches='tight')
+        fig.savefig(f'figures/velocityslices-{SURFACE}-RANS.png', bbox_inches='tight', dpi=300)
+        fig2.savefig(f'figures/velocityslices-{SURFACE}-LES.png', bbox_inches='tight', dpi=300)
 
 
 if __name__ == "__main__":
