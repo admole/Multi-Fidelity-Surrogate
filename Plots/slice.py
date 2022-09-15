@@ -78,7 +78,7 @@ def regress_slice(sample_location,):
     return alpha, rans_slices, les_slices, mf_mean, rans_slices.grid[0]
 
 
-def draw(it, fig, ax, angles, hf, lf, mf, grid):
+def draw(it, fig, ax, angles, hf, lf, mf, grid, animation):
     angle = angles[int(it*10)]
     print(f'Plotting mfr slice at angle {angle}')
     for a in ax.flatten():
@@ -97,9 +97,9 @@ def draw(it, fig, ax, angles, hf, lf, mf, grid):
     #                                  cmap='seismic', levels=np.arange(-0.5, 0.5, 0.01))
 
     lf_plot2 = ax[1, 1].tricontour(grid[0], grid[1], lf.u_interp[lf_loc],
-                                   colors='b', levels=[-0.0001, 0.5], linewidths=2)
-    hf_plot2 = ax[1, 1].tricontour(grid[0], grid[1], hf.u_interp[hf_loc],
                                    colors='r', levels=[-0.0001, 0.5], linewidths=2)
+    hf_plot2 = ax[1, 1].tricontour(grid[0], grid[1], hf.u_interp[hf_loc],
+                                   colors='b', levels=[-0.0001, 0.5], linewidths=2)
     mf_plot2 = ax[1, 1].tricontour(grid[0], grid[1], mf[int(it*10)],
                                    colors='k', levels=[-0.0001, 0.5], linewidths=2)
 
@@ -128,20 +128,19 @@ def draw(it, fig, ax, angles, hf, lf, mf, grid):
     for a in ax[-1, :]:
         a.set_xlabel(r'$x/H$')
 
-    fig.suptitle(fr'$\theta = {int(angle)}$')
+    if animation:
+        fig.suptitle(fr'$\theta = {int(angle)}$')
 
     return mf_plot
 
 
 def main():
-    fig1, axes1 = plt.subplots(2, 2, figsize=(11.5, 7.8),
-                               squeeze=False, constrained_layout=True,
-                               sharex='all', sharey='all')
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', action='store_true', help='Create animation')
-    parser.add_argument('angle', type=float, help='Angle to sample slices at', default=15, nargs='?')
+    parser.add_argument('angle', type=float, help='Angle to sample slices at', default=[5, 15, 25], nargs='*')
     args = parser.parse_args()
     sample_angle = args.angle
+    print(sample_angle)
 
     plane = 'yNormal'
 
@@ -149,14 +148,21 @@ def main():
     alpha, lf, hf, mf, grid = regress_slice(plane)
 
     if args.a:
-        anim = animation.FuncAnimation(fig1, draw, fargs=(fig1, axes1, alpha, hf, lf, mf, grid,),
+        fig1, axes1 = plt.subplots(2, 2, figsize=(11.5, 7.8),
+                                   squeeze=False, constrained_layout=True,
+                                   sharex='all', sharey='all')
+        anim = animation.FuncAnimation(fig1, draw, fargs=(fig1, axes1, alpha, hf, lf, mf, grid, args.a),
                                        frames=int(len(alpha)/10), interval=1, blit=False)
         # plt.show()
         anim.save('animations/slices_animation.mp4', fps=5, dpi=400)
     else:
-        draw(sample_angle * len(alpha) / (10 * alpha[-1]), fig1, axes1, alpha, hf, lf, mf, grid, )
-        plt.show()
-        fig1.savefig(f'figures/slices_{sample_angle}.png', bbox_inches='tight')
+        fig1, axes1 = plt.subplots(2, 2, figsize=(11.5, 7),
+                                   squeeze=False, constrained_layout=True,
+                                   sharex='all', sharey='all')
+        for ang in sample_angle:
+            draw(ang * len(alpha) / (10 * alpha[-1]), fig1, axes1, alpha, hf, lf, mf, grid, args.a)
+            # plt.show()
+            fig1.savefig(f'figures/slices_{int(ang)}.png', bbox_inches='tight', dpi=300)
 
 
 if __name__ == "__main__":

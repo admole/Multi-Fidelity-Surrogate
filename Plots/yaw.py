@@ -52,7 +52,7 @@ def get_yaw(model):
 def plot_yaw(ax, ax2, rans, les, variable, model):
     les_train = les[les[r"$\alpha$"] % 10 == 0]
     les_test = les[les[r"$\alpha$"] % 10 != 0]
-    ax.scatter(rans[r'$\alpha$'], rans[variable], edgecolors='b', facecolors='none', label=f'RANS Sample')
+    ax.scatter(rans[r'$\alpha$'], rans[variable], edgecolors='r', facecolors='none', label=f'RANS Sample')
 
     regress = MFRegress(rans[r'$\alpha$'].to_numpy(),
                         rans[variable].to_numpy(),
@@ -64,12 +64,12 @@ def plot_yaw(ax, ax2, rans, les, variable, model):
         alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp(hidden_layers1=(10, 20, 20, 20, 10),
                                                                                        hidden_layers2=(10, 10, 10, 10),)
 
-    ax.plot(alpha, rans_mean, 'b--', label=f'RANS Only {model}')
-    ax.fill_between(alpha[:, 0], rans_mean[:, 0] - rans_std, rans_mean[:, 0] + rans_std, alpha=0.2, color='b')
-    ax.scatter(les_test[r'$\alpha$'], les_test[variable], c='r', label='LES Sample (testing)')
-    ax.scatter(les_train[r'$\alpha$'], les_train[variable], edgecolors='r', facecolors='none', label=f'LES Sample (training)')
-    ax.plot(alpha, les_mean, 'r--', label=f'LES Only {model}')
-    ax.fill_between(alpha[:, 0], les_mean[:, 0] - les_std, les_mean[:, 0] + les_std, alpha=0.2, color='r')
+    ax.plot(alpha, rans_mean, 'r--', label=f'RANS Only {model}')
+    ax.fill_between(alpha[:, 0], rans_mean[:, 0] - rans_std, rans_mean[:, 0] + rans_std, alpha=0.2, color='r')
+    ax.scatter(les_test[r'$\alpha$'], les_test[variable], color=[0.2, 0.7, 1], label='LES Sample (testing)')
+    ax.scatter(les_train[r'$\alpha$'], les_train[variable], edgecolors='b', facecolors='none', label=f'LES Sample (training)')
+    ax.plot(alpha, les_mean, 'b--', label=f'LES Only {model}')
+    ax.fill_between(alpha[:, 0], les_mean[:, 0] - les_std, les_mean[:, 0] + les_std, alpha=0.2, color='b')
     ax.plot(alpha, mf_mean, 'k', label=f'Multi-Fidelity {model}')
     ax.fill_between(alpha[:, 0], mf_mean[:, 0] - mf_std, mf_mean[:, 0] + mf_std,
                     alpha=0.2, color='k')# , label="Model +/- 1 std")
@@ -80,7 +80,7 @@ def plot_yaw(ax, ax2, rans, les, variable, model):
     ax.set_xlim(0, max(alpha))
     ax.legend(frameon=False, ncol=2, columnspacing=0.5)
 
-    # ax2.plot(rans_mean, les_mean, 'r', label='LES Only')
+    # ax2.plot(rans_mean, les_mean, 'b', label='LES Only')
     ax2.plot(rans_mean, mf_mean, 'k', label='Multi-Fidelity')
     # if ax2 == axes1[-1, 1]:
     #     ax2.set_xlabel(f'Low-Fidelity')
