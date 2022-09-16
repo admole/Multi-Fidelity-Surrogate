@@ -50,8 +50,9 @@ def get_yaw(model):
 
 
 def plot_yaw(ax, ax2, rans, les, variable, model):
+    print(f'\nRunning for {variable}')
     les_train = les[les[r"$\alpha$"] % 10 == 0]
-    les_test = les[les[r"$\alpha$"] % 10 != 0]
+    les_test = les[les[r"$\alpha$"] % 10 == 5]
     ax.scatter(rans[r'$\alpha$'], rans[variable], edgecolors='r', facecolors='none', label=f'RANS Sample')
 
     regress = MFRegress(rans[r'$\alpha$'].to_numpy(),
@@ -63,42 +64,55 @@ def plot_yaw(ax, ax2, rans, les, variable, model):
     else:
         from sklearn.metrics import mean_squared_error
         import random
-        n_runs = 300
+        n_runs = 60
         scores = []
         scores_hf = []
-        arcitectures = []
+        architectures = []
         while len(scores) < n_runs:
-            regress = MFRegress(rans[r'$\alpha$'].to_numpy(),
-                                rans[variable].to_numpy(),
-                                les_train[r'$\alpha$'].to_numpy(),
-                                les_train[variable].to_numpy())
+
             lf_hidden_layers = []
             hf_hidden_layers = []
             for layer in range(random.randint(1, 8)):
-                lf_hidden_layers.append(random.randint(2, 64))
+                lf_hidden_layers.append(2**random.randint(2, 8))
             for layer in range(random.randint(1, 8)):
-                hf_hidden_layers.append(random.randint(2, 64))
+                hf_hidden_layers.append(2**random.randint(2, 8))
 
-            alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp(hidden_layers1=tuple(lf_hidden_layers),
-                                                                                           hidden_layers2=tuple(hf_hidden_layers),)
+            from sklearn.model_selection import LeaveOneOut
+            loo = LeaveOneOut()
+            score_hf = 0
+            score = 0
+            for train_index, test_index in loo.split(les_train[r'$\alpha$']):
+                # X_train, X_test = X[train_index], X[test_index]
+                # y_train, y_test = y[train_index], y[test_index]
 
-            score_hf = mean_squared_error(les_test[variable].to_numpy(), les_mean[alpha % 10 == 5][:-1])
-            score = mean_squared_error(les_test[variable].to_numpy(), mf_mean[alpha % 10 == 5][:-1])
+                regress = MFRegress(rans[r'$\alpha$'].to_numpy(),
+                                    rans[variable].to_numpy(),
+                                    les_train[r'$\alpha$'].to_numpy()[train_index],
+                                    les_train[variable].to_numpy()[train_index])
+
+                alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp(hidden_layers1=tuple(lf_hidden_layers),
+                                                                                               hidden_layers2=tuple(hf_hidden_layers),)
+
+                kscore_hf = mean_squared_error(les_train[variable].to_numpy()[test_index],
+                                              les_mean[alpha == les_train[r'$\alpha$'].to_numpy()[test_index]])
+                kscore = mean_squared_error(les_train[variable].to_numpy()[test_index],
+                                           mf_mean[alpha == les_train[r'$\alpha$'].to_numpy()[test_index]])
+                score_hf += kscore_hf
+                score += kscore
             scores.append(score)
             scores_hf.append(score)
-            arcitectures.append((lf_hidden_layers, hf_hidden_layers))
-            print('Run Complete')
-        print(scores)
+            architectures.append((lf_hidden_layers, hf_hidden_layers))
+
         best_run = np.argmin(np.abs(scores))
         worst_run = np.argmax(np.abs(scores))
         print('Best configuration')
         print(f'iteration= {best_run}')
         print(f'score = {scores[best_run]}')
-        print(f'architecture = {arcitectures[best_run]}')
+        print(f'architecture = {architectures[best_run]}')
         print('worst configuration')
         print(f'iteration= {worst_run}')
         print(f'score = {scores[worst_run]}')
-        print(f'architecture = {arcitectures[worst_run]}')
+        print(f'architecture = {architectures[worst_run]}')
 
         # rerun regression with optimal MF set-up
         regress = MFRegress(rans[r'$\alpha$'].to_numpy(),
@@ -107,8 +121,8 @@ def plot_yaw(ax, ax2, rans, les, variable, model):
                             les_train[variable].to_numpy())
 
         alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp(
-            hidden_layers1=tuple(arcitectures[best_run][0]),
-            hidden_layers2=tuple(arcitectures[best_run][1]), )
+            hidden_layers1=tuple(architectures[best_run][0]),
+            hidden_layers2=tuple(architectures[best_run][1]), )
 
         # rerun regression with optimal HF set-up
         regress = MFRegress(rans[r'$\alpha$'].to_numpy(),
@@ -117,13 +131,14 @@ def plot_yaw(ax, ax2, rans, les, variable, model):
                             les_train[variable].to_numpy())
 
         les_mean = regress.mfmlp(
-            hidden_layers1=tuple(arcitectures[best_run][0]),
-            hidden_layers2=tuple(arcitectures[np.argmin(np.abs(scores_hf))][1]), )[3]
+            hidden_layers1=tuple(architectures[best_run][0]),
+            hidden_layers2=tuple(architectures[np.argmin(np.abs(scores_hf))][1]), )[3]
 
     ax.plot(alpha, rans_mean, 'r--', label=f'RANS Only {model}')
     ax.fill_between(alpha[:, 0], rans_mean[:, 0] - rans_std, rans_mean[:, 0] + rans_std, alpha=0.2, color='r')
     ax.scatter(les_test[r'$\alpha$'], les_test[variable], color=[0.2, 0.7, 1], label='LES Sample (testing)')
     ax.scatter(les_train[r'$\alpha$'], les_train[variable], edgecolors='b', facecolors='none', label=f'LES Sample (training)')
+    # ax.scatter(les_validate[r'$\alpha$'], les_validate[variable], edgecolors='b', facecolors='g', label=f'LES Sample (validate)')
     ax.plot(alpha, les_mean, 'b--', label=f'LES Only {model}')
     ax.fill_between(alpha[:, 0], les_mean[:, 0] - les_std, les_mean[:, 0] + les_std, alpha=0.2, color='b')
     ax.plot(alpha, mf_mean, 'k', label=f'Multi-Fidelity {model}')
