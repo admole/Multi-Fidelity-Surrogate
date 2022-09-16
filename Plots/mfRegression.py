@@ -54,7 +54,7 @@ class MFRegress:
 
         kernel_lf = Matern()
         kernel_hf = Matern(length_scale_bounds=(0.25, 1e2))
-        kernel_hf = DotProduct() ** 1 * Matern()
+        kernel_hf = DotProduct() ** 2 * Matern()
 
         scaler, datascaler = self.prep()
 
@@ -124,10 +124,12 @@ class MFRegress:
               ):
         from sklearn.neural_network import MLPRegressor
         import numpy as np
+        import warnings
+        from sklearn.exceptions import DataConversionWarning
+        warnings.filterwarnings(action='ignore', category=DataConversionWarning)
 
         if len(np.shape(self.lf)) == 1:
             single = True
-            print('single')
         else:
             single = False
             
