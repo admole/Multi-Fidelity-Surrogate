@@ -54,7 +54,7 @@ class MFRegress:
 
         kernel_lf = Matern()
         kernel_hf = Matern(length_scale_bounds=(0.25, 1e2))
-        kernel_hf = DotProduct() ** 1 * Matern()
+        kernel_hf = DotProduct() ** 2 * Matern()
 
         scaler, datascaler = self.prep()
 
@@ -70,7 +70,7 @@ class MFRegress:
 
         if self.embedding_theory:
             l1mean_shift1 = gpr_lf.predict(self.x_hf+0.02)
-            l1mean_shift2 = gpr_lf.predict(self.x_hf-0.02)
+            l1mean_shift2 = gpr_lf.predict(self.x_hf+0.04)
             l2_train = np.hstack((self.x_hf, l1mean, l1mean_shift1, l1mean_shift2))
         else:
             l2_train = np.hstack((self.x_hf, l1mean))
@@ -92,7 +92,7 @@ class MFRegress:
 
         if self.embedding_theory:
             pred_lf_mean_shift1 = gpr_lf.predict(self.x + 0.02, return_std=False)
-            pred_lf_mean_shift2 = gpr_lf.predict(self.x - 0.02, return_std=False)
+            pred_lf_mean_shift2 = gpr_lf.predict(self.x + 0.04, return_std=False)
             l2_test = np.hstack((self.x, pred_lf_mean, pred_lf_mean_shift1, pred_lf_mean_shift2))
         else:
             l2_test = np.hstack((self.x, pred_lf_mean))
@@ -124,10 +124,12 @@ class MFRegress:
               ):
         from sklearn.neural_network import MLPRegressor
         import numpy as np
+        import warnings
+        from sklearn.exceptions import DataConversionWarning
+        warnings.filterwarnings(action='ignore', category=DataConversionWarning)
 
         if len(np.shape(self.lf)) == 1:
             single = True
-            print('single')
         else:
             single = False
             
@@ -153,12 +155,10 @@ class MFRegress:
         if self.embedding_theory:
             l1mean_shift1 = mlpr_lf.predict(self.x_hf + 0.02)
             l1mean_shift2 = mlpr_lf.predict(self.x_hf + 0.04)
-            l1mean_shift3 = mlpr_lf.predict(self.x_hf + 0.1)
             if single:
                 l1mean_shift1 = l1mean_shift1.reshape(-1, 1)
                 l1mean_shift2 = l1mean_shift2.reshape(-1, 1)
-                l1mean_shift3 = l1mean_shift3.reshape(-1, 1)
-            l2_train = np.concatenate((l2_train, l1mean_shift1, l1mean_shift2, l1mean_shift3), axis=1)
+            l2_train = np.concatenate((l2_train, l1mean_shift1, l1mean_shift2), axis=1)
             
         if self.gradient:
             l1mean_gradient = np.gradient(l1mean, axis=1)
@@ -184,12 +184,10 @@ class MFRegress:
         if self.embedding_theory:
             pred_lf_mean_shift1 = mlpr_lf.predict(self.x + 0.02)
             pred_lf_mean_shift2 = mlpr_lf.predict(self.x + 0.04)
-            pred_lf_mean_shift3 = mlpr_lf.predict(self.x + 0.1)
             if single:
                 pred_lf_mean_shift1 = pred_lf_mean_shift1.reshape(-1, 1)
                 pred_lf_mean_shift2 = pred_lf_mean_shift2.reshape(-1, 1)
-                pred_lf_mean_shift3 = pred_lf_mean_shift3.reshape(-1, 1)
-            l2_test = np.concatenate((l2_test, pred_lf_mean_shift1, pred_lf_mean_shift2, pred_lf_mean_shift3), axis=1)
+            l2_test = np.concatenate((l2_test, pred_lf_mean_shift1, pred_lf_mean_shift2), axis=1)
             
         if self.gradient:
             pred_lf_mean_gradient = np.gradient(pred_lf_mean, axis=1)
