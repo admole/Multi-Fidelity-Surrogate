@@ -176,7 +176,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', action='store_true', help='Create animation')
     parser.add_argument('-gpr', action='store_true', help='Use GPR (default is MLP)')
-    parser.add_argument('angle', type=float, help='Angle to sample profiles at', default=15, nargs='?')
+    parser.add_argument('angle', type=float, help='Angle to sample profiles at', default=[5, 15, 25], nargs='*')
     args = parser.parse_args()
     sample_angle = args.angle
     if args.gpr:
@@ -202,9 +202,9 @@ def main():
         plt.show()
         anim.save(f'animations/profiles_{model}_animation.mp4', fps=5, dpi=400)
     else:
-        draw(sample_angle * len(alpha) / (10 * alpha[-1]), axes1, alpha, hfs, lfs, mfs, ys, model)
-        plt.show()
-        fig1.savefig(f'figures/profiles_{model}_{int(sample_angle)}.pdf', bbox_inches='tight')
+        for ang in sample_angle:
+            draw(ang * len(alpha) / (10 * alpha[-1]), axes1, alpha, hfs, lfs, mfs, ys, model)
+            fig1.savefig(f'figures/profiles_{model}_{int(ang)}.pdf', bbox_inches='tight')
 
 
 if __name__ == "__main__":
