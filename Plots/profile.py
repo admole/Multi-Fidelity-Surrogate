@@ -71,7 +71,67 @@ def regress_profile(sample_location, gpr):
     if gpr:
         alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp()
     else:
-        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp()
+        optimise = False
+        architectures = []
+        if optimise:
+            from sklearn.metrics import mean_squared_error
+            import random
+            n_runs = 60
+            scores = []
+            while len(scores) < n_runs:
+
+                lf_hidden_layers = []
+                hf_hidden_layers = []
+                for layer in range(random.randint(1, 8)):
+                    lf_hidden_layers.append(2 ** random.randint(2, 8))
+                for layer in range(random.randint(1, 8)):
+                    hf_hidden_layers.append(2 ** random.randint(2, 8))
+
+                from sklearn.model_selection import LeaveOneOut
+                loo = LeaveOneOut()
+                score = 0
+                for train_index, test_index in loo.split(les_training_alpha):
+
+                    regress = MFRegress(np.array(rans_profiles.alphas),
+                                        np.array(rans_profiles.u_interp),
+                                        np.array(les_training_alpha)[train_index],
+                                        np.array(les_training_velocity)[train_index])
+
+                    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp(
+                        hidden_layers1=tuple(lf_hidden_layers),
+                        hidden_layers2=tuple(hf_hidden_layers), )
+
+                    kscore = mean_squared_error(np.array(les_training_velocity)[test_index][0],
+                                                mf_mean[alpha[:, 0] == np.array(les_training_alpha)[test_index][0]][0])
+                    print(kscore)
+                    score += kscore
+                scores.append(score)
+                architectures.append((lf_hidden_layers, hf_hidden_layers))
+
+            best_run = np.argmin(np.abs(scores))
+            worst_run = np.argmax(np.abs(scores))
+            print('Best configuration')
+            print(f'iteration= {best_run}')
+            print(f'score = {scores[best_run]}')
+            print(f'architecture = {architectures[best_run]}')
+            print('worst configuration')
+            print(f'iteration= {worst_run}')
+            print(f'score = {scores[worst_run]}')
+            print(f'architecture = {architectures[worst_run]}')
+
+        else:
+            architectures.append(([4, 64, 4, 8, 64, 4, 256], [16, 32, 8, 128, 32, 64]))
+            best_run = 0
+
+        # rerun regression with optimal MF set-up
+        regress = MFRegress(np.array(rans_profiles.alphas),
+                            np.array(rans_profiles.u_interp),
+                            np.array(les_training_alpha),
+                            np.array(les_training_velocity))
+
+        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfmlp(
+            hidden_layers1=tuple(architectures[best_run][0]),
+            hidden_layers2=tuple(architectures[best_run][1]), )
 
     return alpha, rans_profiles, les_profiles, mf_mean, rans_profiles.y[0]
 
