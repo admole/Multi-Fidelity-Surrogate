@@ -155,7 +155,7 @@ def plot_yaw(ax, ax2, rans, les, variable, model):
     ax2.plot(rans_mean, mf_mean, 'k', label='Multi-Fidelity')
     # if ax2 == axes1[-1, 1]:
     #     ax2.set_xlabel(f'Low-Fidelity')
-    ax2.set_ylabel(f'High-Fidelity')
+    ax2.set_ylabel(r'$\mathcal{Y}_H$')
     ax2.legend(frameon=False)
 
 
@@ -187,7 +187,7 @@ def main():
         plot_yaw(axes1[it, 0], axes1[it, 1], RANS_data, LES_data, quantity, model)
 
     axes1[-1, 0].set_xlabel(r'$\alpha$')
-    axes1[-1, 1].set_xlabel(f'Low-Fidelity')
+    axes1[-1, 1].set_xlabel(r'$\mathcal{Y}_L$')
     plt.show()
     fig1.savefig(f'figures/yaw_{model}.pdf', bbox_inches='tight')
 
