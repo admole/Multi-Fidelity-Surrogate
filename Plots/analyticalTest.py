@@ -33,8 +33,8 @@ def hf(x):
     return y
 
 
-def lf(x, c1, c2, c3):
-    y = c1*hf(x+c2)+c3
+def lf(x, c1, c2, c3, c4):
+    y = c1*hf(c2*x+c3)+c4
     return y
 
 
@@ -52,11 +52,17 @@ if extraX:
 
 X_hf[0] = 0.81
 
-c1 = 1
-c2 = 0
-c3 = 0
+c1 = 0.5
+c2 = 1
+c3 = 0.04
+c4 = -1.0
 
-regress = MFRegress(X_lf, lf(X_lf, c1, c2, c3), X_hf, hf(X_hf))
+c1 = 1
+c2 = 1
+c3 = 0
+c4 = 0
+
+regress = MFRegress(X_lf, lf(X_lf, c1, c2, c3, c4), X_hf, hf(X_hf))
 
 if model == 'MLP':
     X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = regress.mfmlp()
@@ -66,23 +72,22 @@ else:
 
 legend_location = (1, 1)
 
-fig, axs = plt.subplots(5, figsize=(12, 11), constrained_layout=True, sharex='none', sharey='none')
+fig, axs = plt.subplots(5, figsize=(10, 12), constrained_layout=True, sharex='none', sharey='none')
 
-axs[0].plot(X, hf(X), label="High Fidelity / Exact")
-lf_scatter, = axs[0].plot(X_lf, lf(X_lf, c1, c2, c3), 'bo', label="Low fidelity samples")
-axs[0].plot(X_hf, hf(X_hf), 'ro', label="High fidelity samples")
-axs[0].legend(bbox_to_anchor=legend_location, loc='upper left')
+axs[0].plot(X, hf(X), 'mediumseagreen', label="Exact")
+lf_scatter, = axs[0].plot(X_lf, lf(X_lf, c1, c2, c3, c4), 'tab:red', linestyle='None', marker='o', label="Low-Fidelity samples")
+axs[0].plot(X_hf, hf(X_hf), 'blue', linestyle='None', marker='o', label="High-Fidelity samples")
 
-axs[1].plot(X, hf(X), label="High Fidelity / Exact")
-axs[1].plot(X, pred_hf_mean, 'k', lw=3, label=f"High fidelity {model} \n(trained on red dots)")
-axs[1].plot(X_hf, hf(X_hf), 'ro', label="High fidelity samples")
+axs[1].plot(X, hf(X), 'mediumseagreen', label="Exact")
+axs[1].plot(X, pred_hf_mean, 'k', lw=3, label=f"High-Fidelity {model} \n(trained on blue dots)")
+axs[1].plot(X_hf, hf(X_hf), 'blue', linestyle='None', marker='o', label="High-Fidelity samples")
 
-axs[2].plot(X, hf(X), label="High Fidelity / Exact")
-lf_prediction_line, = axs[2].plot(X, pred_lf_mean, 'k', lw=3, label=f"Low fidelity {model} \n(trained on blue dots)")
-lf_scatter2, = axs[2].plot(X_lf, lf(X_lf, c1, c2, c3), 'bo', label="Low fidelity samples")
+axs[2].plot(X, hf(X), 'mediumseagreen', label="Exact")
+lf_prediction_line, = axs[2].plot(X, pred_lf_mean, 'k', lw=3, label=f"Low-Fidelity {model} \n(trained on red dots)")
+lf_scatter2, = axs[2].plot(X_lf, lf(X_lf, c1, c2, c3, c4), 'tab:red', linestyle='None', marker='o', label="Low-Fidelity samples")
 
-axs[3].plot(X, hf(X), label="High Fidelity / Exact")
-mf_prediction_line, = axs[3].plot(X, pred_mf_mean, 'k', lw=3, label=f"Multi fidelity {model} \n(trained on all dots)")
+axs[3].plot(X, hf(X), 'mediumseagreen', label="Exact")
+mf_prediction_line, = axs[3].plot(X, pred_mf_mean, 'k', lw=3, label=f"Multi-Fidelity {model} \n(trained on all dots)")
 
 if model == 'GP Mean':
     axs[1].fill_between(X[:, 0], pred_hf_mean[:, 0] - 2 * pred_hf_std, pred_hf_mean[:, 0] + 2 * pred_hf_std, alpha=0.2,
@@ -92,9 +97,10 @@ if model == 'GP Mean':
     mf_fill = axs[3].fill_between(X[:, 0], pred_mf_mean[:, 0] - 2 * pred_mf_std, pred_mf_mean[:, 0] + 2 * pred_mf_std, alpha=0.2,
                         color='k', label="+/- 2 std")
 
-axs[1].legend(bbox_to_anchor=legend_location, loc='upper left')
-axs[2].legend(bbox_to_anchor=legend_location, loc='upper left')
-axs[3].legend(bbox_to_anchor=legend_location, loc='upper left')
+axs[0].legend(bbox_to_anchor=legend_location, loc='upper left', frameon=False)
+axs[1].legend(bbox_to_anchor=legend_location, loc='upper left', frameon=False)
+axs[2].legend(bbox_to_anchor=legend_location, loc='upper left', frameon=False)
+axs[3].legend(bbox_to_anchor=legend_location, loc='upper left', frameon=False)
 
 
 axs[3].set_xlabel('$x$')
@@ -110,34 +116,37 @@ for i in range(4):
 # ax1.set_ylabel(r"$y_{hf}$")
 # ax1.set_zlabel(r"$x$")
 
-correlation_line2, = axs[4].plot(pred_lf_mean[:, 0], pred_hf_mean[:, 0], label='Exact')
+correlation_line2, = axs[4].plot(pred_lf_mean[:, 0], pred_hf_mean[:, 0], 'mediumseagreen', label='Exact')
 correlation_line, = axs[4].plot(pred_lf_mean[:, 0], pred_mf_mean[:, 0], 'k', lw=3, label=f'MF{model}')
 axs[4].set_xlabel(r"$y_{lf}$")
 axs[4].set_ylabel(r"$y_{hf}$")
 axs[4].legend()
 
 
-fig.text(0.75, 0.18, r'$f(x)_{lf} = c_1 f(x+c_2)_{hf} + c_3$')
-axc1 = plt.axes([0.8, 0.14, 0.15, 0.03])
+fig.text(0.7, 0.18, r'$f(x)_{lf} = c_1 f(c_2x+c_3)_{hf} + c_4$')
+axc1 = plt.axes([0.75, 0.14, 0.15, 0.03])
 sc1 = Slider(axc1, 'c1', -1, 2, valinit=c1)
-axc2 = plt.axes([0.8, 0.1, 0.15, 0.03])
-sc2 = Slider(axc2, 'c2', -0.5, 0.5, valinit=c2)
-axc3 = plt.axes([0.8, 0.06, 0.15, 0.03])
-sc3 = Slider(axc3, 'c3', -10, 10, valinit=c3)
+axc2 = plt.axes([0.75, 0.1, 0.15, 0.03])
+sc2 = Slider(axc2, 'c2', -1, 2, valinit=c2)
+axc3 = plt.axes([0.75, 0.06, 0.15, 0.03])
+sc3 = Slider(axc3, 'c3', -0.25, 0.25, valinit=c3)
+axc4 = plt.axes([0.75, 0.02, 0.15, 0.03])
+sc4 = Slider(axc4, 'c4', -1, 1, valinit=c4)
 
 
 def update(val):
-    regress = MFRegress(X_lf, lf(X_lf, sc1.val, sc2.val, sc3.val), X_hf, hf(X_hf))
+    regress = MFRegress(X_lf, lf(X_lf, sc1.val, sc2.val, sc3.val, sc4.val), X_hf, hf(X_hf))
     if model == 'MLP':
-        X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = regress.mfmlp()
+        X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = regress.mfmlp(hidden_layers1=(10, 20, 20, 10),
+                                                                                                           hidden_layers2=(10, 20, 20, 10))
     else:
         X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = regress.mfgp()
 
     correlation_line.set_data(pred_lf_mean[:, 0], pred_mf_mean[:, 0])
     correlation_line2.set_data(pred_lf_mean[:, 0], hf(X))
     # correlation_3dline.set_data(pred_lf_mean[:, 0], pred_mf_mean[:, 0], X[:, 0])
-    lf_scatter.set_data(X_lf, lf(X_lf, sc1.val, sc2.val, sc3.val))
-    lf_scatter2.set_data(X_lf, lf(X_lf, sc1.val, sc2.val, sc3.val))
+    lf_scatter.set_data(X_lf, lf(X_lf, sc1.val, sc2.val, sc3.val, sc4.val))
+    lf_scatter2.set_data(X_lf, lf(X_lf, sc1.val, sc2.val, sc3.val, sc4.val))
     lf_prediction_line.set_data(X, pred_lf_mean)
     mf_prediction_line.set_data(X, pred_mf_mean)
 
@@ -157,5 +166,7 @@ def update(val):
 sc1.on_changed(update)
 sc2.on_changed(update)
 sc3.on_changed(update)
+sc4.on_changed(update)
 
 plt.show()
+fig.savefig(f'figures/analytical_{model}.pdf', bbox_inches='tight')
