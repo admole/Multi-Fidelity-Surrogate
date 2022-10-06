@@ -69,7 +69,8 @@ def regress_profile(sample_location, gpr):
                         embedding_theory=True,)
 
     if gpr:
-        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp()
+        from sklearn.gaussian_process.kernels import (Matern, DotProduct)
+        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp(kernel_lf=Matern(), kernel_hf=DotProduct() ** 2 * Matern())
     else:
         optimise = True
         architectures = []

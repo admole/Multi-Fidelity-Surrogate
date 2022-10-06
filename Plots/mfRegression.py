@@ -37,24 +37,15 @@ class MFRegress:
 
         return scaler, datascaler
 
-    def mfgp(self):
+    def mfgp(self, kernel_lf, kernel_hf):
         import numpy as np
         from sklearn.gaussian_process import GaussianProcessRegressor
-        from sklearn.gaussian_process.kernels import (RBF, Matern, RationalQuadratic,
-                                                      ExpSineSquared, DotProduct,
-                                                      ConstantKernel, WhiteKernel,
-                                                      CompoundKernel, Kernel,
-                                                      Product, Sum)
 
         if len(np.shape(self.lf)) == 1:
             single = True
             print('single')
         else:
             single = False
-
-        kernel_lf = Matern()
-        kernel_hf = Matern(length_scale_bounds=(0.1, 1e2))
-        kernel_hf = DotProduct() ** 2 * Matern()
 
         scaler, datascaler = self.prep()
 

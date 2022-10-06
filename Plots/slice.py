@@ -73,8 +73,9 @@ def regress_slice(sample_location,):
                         np.array(les_training_alpha),
                         np.array(les_training_velocity),
                         embedding_theory=True,)
-    
-    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp()
+
+    from sklearn.gaussian_process.kernels import (Matern, DotProduct)
+    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp(kernel_lf=Matern(), kernel_hf=DotProduct()**2*Matern())
     return alpha, rans_slices, les_slices, mf_mean, rans_slices.grid[0]
 
 

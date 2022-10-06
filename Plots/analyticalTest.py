@@ -66,13 +66,27 @@ elif Func == 'Step':
 regress = MFRegress(X_lf, lf(X_lf, c1, c2, c3, c4), X_hf, hf(X_hf))
 
 if model == 'MLP':
-    X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = regress.mfmlp(hidden_layers1=(8, 32, 32, 8),
-                                                                                                       hidden_layers2=(8, 32, 32, 8),
-                                                                                                       activation='relu')
+    if Func == 'Sine':
+        activ = 'tanh'
+    elif Func == 'Step':
+        activ = 'relu'
+    X, pred_lf_mean, pred_lf_std,\
+        pred_hf_mean, pred_hf_std,\
+        pred_mf_mean, pred_mf_std = regress.mfmlp(hidden_layers1=(8, 32, 32, 8),
+                                                  hidden_layers2=(8, 32, 32, 8),
+                                                  activation=activ)
 else:
-    X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = regress.mfgp()
-# Plotting --
+    from sklearn.gaussian_process.kernels import (RBF, Matern)
+    if Func == 'Sine':
+        k_lf = RBF()
+    elif Func == 'Step':
+        k_lf = Matern()
+    k_hf = k_lf ** 2 + k_lf
+    X, pred_lf_mean, pred_lf_std,\
+        pred_hf_mean, pred_hf_std,\
+        pred_mf_mean, pred_mf_std = regress.mfgp(k_lf, k_hf)
 
+# Plotting --
 legend_location = (1, 1)
 
 fig, axs = plt.subplots(5, figsize=(10, 12), constrained_layout=True, sharex='none', sharey='none')
@@ -140,10 +154,15 @@ sc4 = TextBox(axc4, r'$c_4\,=\,$', initial=f'{c4}')
 def update(val):
     regress = MFRegress(X_lf, lf(X_lf, float(sc1.text), float(sc2.text), float(sc3.text), float(sc4.text)), X_hf, hf(X_hf))
     if model == 'MLP':
-        X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = regress.mfmlp(hidden_layers1=(10, 20, 20, 10),
-                                                                                                           hidden_layers2=(10, 20, 20, 10))
+        X, pred_lf_mean, pred_lf_std,\
+            pred_hf_mean, pred_hf_std,\
+            pred_mf_mean, pred_mf_std = regress.mfmlp(hidden_layers1=(10, 20, 20, 10),
+                                                      hidden_layers2=(10, 20, 20, 10),
+                                                      activation=activ)
     else:
-        X, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std = regress.mfgp()
+        X, pred_lf_mean, pred_lf_std,\
+            pred_hf_mean, pred_hf_std,\
+            pred_mf_mean, pred_mf_std = regress.mfgp(k_lf, k_hf)
 
     correlation_line.set_data(pred_lf_mean[:, 0], pred_mf_mean[:, 0])
     correlation_line2.set_data(pred_lf_mean[:, 0], hf(X))

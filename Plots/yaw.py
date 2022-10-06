@@ -60,7 +60,8 @@ def plot_yaw(ax, ax2, rans, les, variable, model):
                         les_train[r'$\alpha$'].to_numpy(),
                         les_train[variable].to_numpy())
     if model == 'GPR':
-        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp()
+        from sklearn.gaussian_process.kernels import (Matern, DotProduct)
+        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp(kernel_lf=Matern(), kernel_hf=DotProduct()*Matern())
     else:
         from sklearn.metrics import mean_squared_error
         import random
