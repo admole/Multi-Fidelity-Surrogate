@@ -53,7 +53,7 @@ class MFRegress:
             single = False
 
         kernel_lf = Matern()
-        kernel_hf = Matern(length_scale_bounds=(0.25, 1e2))
+        kernel_hf = Matern(length_scale_bounds=(0.1, 1e2))
         kernel_hf = DotProduct() ** 2 * Matern()
 
         scaler, datascaler = self.prep()
@@ -108,11 +108,12 @@ class MFRegress:
 
         self.x = scaler.inverse_transform(self.x)
         pred_lf_mean = datascaler.inverse_transform(pred_lf_mean)
-        # pred_lf_std = datascaler.inverse_transform(pred_lf_std.reshape(-1, 1))
         pred_hf_mean = datascaler.inverse_transform(pred_hf_mean)
-        # pred_hf_std = datascaler.inverse_transform(pred_hf_std.reshape(-1, 1))
         pred_mf_mean = datascaler.inverse_transform(pred_mf_mean)
-        # pred_mf_std = datascaler.inverse_transform(pred_mf_std.reshape(-1, 1))
+        if single:
+            pred_lf_std *= datascaler.data_range_
+            pred_hf_std *= datascaler.data_range_
+            pred_mf_std *= datascaler.data_range_
 
         return self.x, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std
 
