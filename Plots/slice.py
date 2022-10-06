@@ -87,33 +87,37 @@ def draw(it, fig, ax, angles, hf, lf, mf, grid, animation):
     hf_loc = np.argmin(np.abs(hf.alphas-angle))
     lf_loc = np.argmin(np.abs(lf.alphas-angle))
 
-    # lf_plot = ax[0, 0].tricontourf(grid[0], grid[1], lf.u_interp[lf_loc],
-    #                                cmap='inferno', levels=np.arange(-0.75, 1.5, 0.01))
-    # hf_plot = ax[0, 1].tricontourf(grid[0], grid[1], hf.u_interp[hf_loc],
-    #                                cmap='inferno', levels=np.arange(-0.75, 1.5, 0.01))
-    # mf_plot = ax[1, 0].tricontourf(grid[0], grid[1], mf[int(it*10)],
-    #                                cmap='inferno', levels=np.arange(-0.75, 1.5, 0.01))
-    # diff_plot = ax[1, 1].tricontourf(grid[0], grid[1], mf[int(it*10)] - hf.u_interp[hf_loc],
-    #                                  cmap='seismic', levels=np.arange(-0.5, 0.5, 0.01))
+    labels = [r'RANS',
+              rf'LES (Test {hf.alphas[hf_loc]})',
+              rf'LES (Train $-5^\circ$)',
+              rf'LES (Train $+5^\circ$)',
+              rf'MF-GPR']
+    if any(hf.alphas[hf_loc] == [0, 10, 20, 30]):
+        sty1 = 'dotted'
+        sty2 = 'solid'
 
     lf_plot1 = ax[0, 0].tricontour(grid[0], grid[1], lf.u_interp[lf_loc],
                                    colors='r', levels=[0.5], linewidths=2)
+    lf_plot1.collections[0].set_label(labels[0])
+
     hf_plot1 = ax[0, 0].tricontour(grid[0], grid[1], hf.u_interp[hf_loc],
                                    colors='b', levels=[0.5], linewidths=2)
-    hf_plot2 = ax[0, 0].tricontour(grid[0], grid[1], hf.u_interp[hf_loc+1],
-                                   colors='b', levels=[0.5], linewidths=2,
-                                   alpha=0.2, linestyles='dashed')
-    hf_plot3 = ax[0, 0].tricontour(grid[0], grid[1], hf.u_interp[hf_loc-1],
-                                   colors='b', levels=[0.5], linewidths=2,
-                                   alpha=0.2, linestyles='dotted')
+    hf_plot1.collections[0].set_label(labels[1])
+
+    if hf_loc > 0:
+        hf_plot2 = ax[0, 0].tricontour(grid[0], grid[1], hf.u_interp[hf_loc-1],
+                                       colors='b', levels=[0.5], linewidths=2,
+                                       alpha=0.2, linestyles='dotted')
+        hf_plot2.collections[0].set_label(labels[2])
+
+    if hf_loc < len(hf.alphas - 1):
+        hf_plot3 = ax[0, 0].tricontour(grid[0], grid[1], hf.u_interp[hf_loc+1],
+                                       colors='b', levels=[0.5], linewidths=2,
+                                       alpha=0.2, linestyles='dashed')
+        hf_plot3.collections[0].set_label(labels[3])
+
     mf_plot1 = ax[0, 0].tricontour(grid[0], grid[1], mf[int(it*10)],
                                    colors='k', levels=[0.5], linewidths=2)
-
-    labels = [r'RANS', r'LES (Test)', r'LES (Train $+5^{\circ}$)', r'LES (Train $-5^{\circ}$)', r'MF-GPR']
-    lf_plot1.collections[0].set_label(labels[0])
-    hf_plot1.collections[0].set_label(labels[1])
-    hf_plot2.collections[0].set_label(labels[2])
-    hf_plot3.collections[0].set_label(labels[3])
     mf_plot1.collections[0].set_label(labels[4])
 
     ax[0, 0].legend(loc='lower left', ncol=3, columnspacing=0.5, frameon=False)
@@ -148,7 +152,7 @@ def main():
     alpha, lf, hf, mf, grid = regress_slice(plane)
 
     if args.a:
-        fig1, axes1 = plt.subplots(2, 2, figsize=(11.5, 7.8),
+        fig1, axes1 = plt.subplots(1, 1, figsize=(8, 6),
                                    squeeze=False, constrained_layout=True,
                                    sharex='all', sharey='all')
         anim = animation.FuncAnimation(fig1, draw, fargs=(fig1, axes1, alpha, hf, lf, mf, grid, args.a),
