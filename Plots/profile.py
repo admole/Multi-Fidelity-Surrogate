@@ -71,7 +71,7 @@ def regress_profile(sample_location, gpr):
     if gpr:
         alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp()
     else:
-        optimise = False
+        optimise = True
         architectures = []
         if optimise:
             from sklearn.metrics import mean_squared_error
@@ -83,9 +83,9 @@ def regress_profile(sample_location, gpr):
                 lf_hidden_layers = []
                 hf_hidden_layers = []
                 for layer in range(random.randint(1, 8)):
-                    lf_hidden_layers.append(2 ** random.randint(2, 8))
+                    lf_hidden_layers.append(10 * random.randint(1, 20))
                 for layer in range(random.randint(1, 8)):
-                    hf_hidden_layers.append(2 ** random.randint(2, 8))
+                    hf_hidden_layers.append(10 * random.randint(1, 20))
 
                 from sklearn.model_selection import LeaveOneOut
                 loo = LeaveOneOut()
@@ -103,7 +103,7 @@ def regress_profile(sample_location, gpr):
 
                     kscore = mean_squared_error(np.array(les_training_velocity)[test_index][0],
                                                 mf_mean[alpha[:, 0] == np.array(les_training_alpha)[test_index][0]][0])
-                    print(kscore)
+                    # print(kscore)
                     score += kscore
                 scores.append(score)
                 architectures.append((lf_hidden_layers, hf_hidden_layers))
@@ -146,7 +146,7 @@ def draw(it, ax, angles, hf, lf, mf, y, model):
     ax[0, 0].add_patch(cube2)
     ax[0, 0].set_ylim(0, 2)
     ax[0, 0].set_xlim(0, 15)
-    ax[0, 0].set_xlabel(r'$U/U_0$')
+    ax[0, 0].set_xlabel(r'$x/H \, + \, U/U_0$')
     ax[0, 0].set_ylabel(r'$y/H$')
     # ax[0, 0].set_title(fr'$\angle = {sample_angle} $', fontsize=40)
     ax[0, 0].set_aspect('equal', adjustable='box')
@@ -158,15 +158,20 @@ def draw(it, ax, angles, hf, lf, mf, y, model):
 
     for sample_loc, i in zip(np.arange(0, 14, 1), range(len(mf))):
         hf_plot, = ax[0, 0].plot(hf[i].u_interp[hf_loc]+sample_loc, y[i], 'b',
-                                    label=fr'LES Profile at ${int(hf[i].alphas[hf_loc])}^\circ$')
+                                    label=fr'LES (Test ${int(hf[i].alphas[hf_loc])}^\circ$)')
+        hf_plotm, = ax[0, 0].plot(hf[i].u_interp[hf_loc-1]+sample_loc, y[i], 'b', alpha=0.2, linestyle='dotted',
+                                    label=fr'LES (Train ${int(hf[i].alphas[hf_loc])}^\circ \pm 5 ^\circ$)')
+        hf_plotp, = ax[0, 0].plot(hf[i].u_interp[hf_loc+1]+sample_loc, y[i], 'b', alpha=0.2, linestyle='dotted',
+                                    label=fr'LES (Test ${int(hf[i].alphas[hf_loc+1])}^\circ$)')
+
         lf_plot, = ax[0, 0].plot(lf[i].u_interp[lf_loc]+sample_loc, y[i], 'r',
-                                    label=fr'RANS Profile at ${int(lf[i].alphas[lf_loc])}^\circ$')
+                                    label=fr'RANS (${int(lf[i].alphas[lf_loc])}^\circ$)')
         mf_plot, = ax[0, 0].plot(mf[i][int(it*10)]+sample_loc, y[i], 'k',
-                                    label=fr'MF-{model} Profile at ${int(angle)}^\circ$')
+                                    label=fr'MF-{model} (${int(angle)}^\circ$)')
     
-    ax[0, 0].legend(handles=[mf_plot, hf_plot, lf_plot],
-                       frameon=False, ncol=3, loc='lower left',
-                       bbox_to_anchor=(0.05, 1.01))
+    ax[0, 0].legend(handles=[mf_plot, hf_plot, hf_plotm, lf_plot],
+                       frameon=False, ncol=4, columnspacing=0.5,
+                       loc='lower left', bbox_to_anchor=(0.05, 1.01))
 
     return mf_plot
 

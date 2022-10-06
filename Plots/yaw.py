@@ -73,9 +73,9 @@ def plot_yaw(ax, ax2, rans, les, variable, model):
             lf_hidden_layers = []
             hf_hidden_layers = []
             for layer in range(random.randint(1, 8)):
-                lf_hidden_layers.append(2**random.randint(2, 8))
+                lf_hidden_layers.append(10*random.randint(1, 8))
             for layer in range(random.randint(1, 8)):
-                hf_hidden_layers.append(2**random.randint(2, 8))
+                hf_hidden_layers.append(10*random.randint(1, 8))
 
             from sklearn.model_selection import LeaveOneOut
             loo = LeaveOneOut()
