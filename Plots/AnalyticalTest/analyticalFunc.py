@@ -90,3 +90,9 @@ class Line:
                 self.pred_hf_mean, self.pred_hf_std,\
                 self.pred_mf_mean, self.pred_mf_std = regress.mfgp(self.k_lf, self.k_hf)
 
+    def errors(self):
+        from sklearn.metrics import mean_squared_error
+        mf_error = mean_squared_error(self.hf(self.X), self.pred_mf_mean)
+        hf_error = mean_squared_error(self.hf(self.X), self.pred_hf_mean)
+        lf_error = mean_squared_error(self.lf(self.X), self.pred_lf_mean)
+        return mf_error, hf_error, lf_error
