@@ -49,17 +49,11 @@ class Line:
             xfocus = np.linspace(0.4, 0.6, 20)
             self.X_lf = np.concatenate((self.X_lf, xfocus))
         if self.Func == 'Sine':
-            self.c1 = 0.5
-            self.c2 = 1
-            self.c3 = 0.04
-            self.c4 = -1.0
+            self.constants = [0.5, 1.0, 0.04, -1.0, 0.0]
             self.activ = 'tanh'
             self.k_lf = RBF()
         elif self.Func == 'Step':
-            self.c1 = 0.5
-            self.c2 = 1.1
-            self.c3 = -0.05
-            self.c4 = -5.0
+            self.constants = [0.5, 1.1, -0.05, -5.0, 0.0]
             self.activ = 'relu'
             self.k_lf = Matern()
         self.k_hf = self.k_lf ** 2 + self.k_lf
@@ -80,7 +74,7 @@ class Line:
         return y
 
     def lf(self, x):
-        y = self.c1*self.hf(self.c2*x+self.c3)+self.c4
+        y = self.constants[0]*x**self.constants[4]*self.hf(self.constants[1]*x+self.constants[2])+self.constants[3]
         return y
 
     def regression(self):
@@ -88,7 +82,7 @@ class Line:
         if self.Model == 'MLP':
             self.X, self.pred_lf_mean, self.pred_lf_std,\
                 self.pred_hf_mean, self.pred_hf_std,\
-                self.pred_mf_mean, self.pred_mf_std = regress.mfmlp(hidden_layers1=(8, 32, 32, 8),
+                self.pred_mf_mean, self.pred_mf_std = regress.mfmlp(hidden_layers1=(8, 32, 64, 32, 8),
                                                                     hidden_layers2=(8, 32, 32, 8),
                                                                     activation=self.activ)
         else:

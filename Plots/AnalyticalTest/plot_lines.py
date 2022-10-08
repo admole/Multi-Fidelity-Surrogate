@@ -20,7 +20,7 @@ np.random.seed(2)
 
 # Plotting --
 legend_location = (1, 1)
-line = Line('Sine', 'MLP')
+line = Line('Step', 'MLP')
 line.regression()
 
 fig, axs = plt.subplots(5, figsize=(10, 12), constrained_layout=True, sharex='none', sharey='none')
@@ -65,22 +65,25 @@ axs[4].set_ylabel(r"$y_{hf}$")
 axs[4].legend()
 
 
-fig.text(0.7, 0.18, r'$f(x)_{lf} = c_1 f(c_2x+c_3)_{hf} + c_4$')
+fig.text(0.7, 0.18, r'$f(x)_{lf} = c_1 x^{c_5} f(c_2x+c_3)_{hf} + c_4$')
 axc1 = plt.axes([0.75, 0.14, 0.06, 0.025])
-sc1 = TextBox(axc1, r'$c_1\,=\,$', initial=f'{line.c1}')
+sc1 = TextBox(axc1, r'$c_1\,=\,$', initial=f'{line.constants[0]}')
 axc2 = plt.axes([0.90, 0.14, 0.06, 0.025])
-sc2 = TextBox(axc2, r'$c_2\,=\,$', initial=f'{line.c2}')
+sc2 = TextBox(axc2, r'$c_2\,=\,$', initial=f'{line.constants[1]}')
 axc3 = plt.axes([0.75, 0.10, 0.06, 0.025])
-sc3 = TextBox(axc3, r'$c_3\,=\,$', initial=f'{line.c3}')
+sc3 = TextBox(axc3, r'$c_3\,=\,$', initial=f'{line.constants[2]}')
 axc4 = plt.axes([0.90, 0.10, 0.06, 0.025])
-sc4 = TextBox(axc4, r'$c_4\,=\,$', initial=f'{line.c4}')
+sc4 = TextBox(axc4, r'$c_4\,=\,$', initial=f'{line.constants[3]}')
+axc5 = plt.axes([0.75, 0.06, 0.06, 0.025])
+sc5 = TextBox(axc5, r'$c_5\,=\,$', initial=f'{line.constants[4]}')
 
 
 def update(val):
-    line.c1 = float(sc1.text)
-    line.c2 = float(sc2.text)
-    line.c3 = float(sc3.text)
-    line.c4 = float(sc4.text)
+    line.constants[0] = float(sc1.text)
+    line.constants[1] = float(sc2.text)
+    line.constants[2] = float(sc3.text)
+    line.constants[3] = float(sc4.text)
+    line.constants[4] = float(sc5.text)
     line.regression()
 
     correlation_line.set_data(line.pred_lf_mean[:, 0], line.pred_mf_mean[:, 0])
@@ -102,11 +105,16 @@ def update(val):
                                       line.pred_mf_mean[:, 0] + 2 * line.pred_mf_std, alpha=0.2,
                                       color='k', label="+/- 2 std")
 
+    for ax in axs:
+        ax.relim()
+        ax.autoscale_view(True, True, True)
+
 
 sc1.on_submit(update)
 sc2.on_submit(update)
 sc3.on_submit(update)
 sc4.on_submit(update)
+sc5.on_submit(update)
 
 plt.show()
 fig.savefig(f'figures/analytical_{line.Func}_{line.Model}.pdf', bbox_inches='tight')
