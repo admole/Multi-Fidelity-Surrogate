@@ -49,11 +49,11 @@ class Line:
             xfocus = np.linspace(0.4, 0.6, 20)
             self.X_lf = np.concatenate((self.X_lf, xfocus))
         if self.Func == 'Sine':
-            self.constants = [0.5, 1.0, 0.04, -1.0, 0.0]
+            self.constants = [0.5, 0.0, 1.0, 0.04, -1.0, 0.0]
             self.activ = 'tanh'
             self.k_lf = RBF()
         elif self.Func == 'Step':
-            self.constants = [0.5, 1.1, -0.05, -5.0, 0.0]
+            self.constants = [0.5, 0.0, 1.1, -0.05, -5.0, 0.0]
             self.activ = 'relu'
             self.k_lf = Matern()
         self.k_hf = self.k_lf ** 2 + self.k_lf
@@ -74,7 +74,9 @@ class Line:
         return y
 
     def lf(self, x):
-        y = self.constants[0]*x**self.constants[4]*self.hf(self.constants[1]*x+self.constants[2])+self.constants[3]
+        y = self.constants[0]*x**self.constants[1]\
+            * self.hf(self.constants[2]*x+self.constants[3])\
+            + self.constants[4]*x**self.constants[5]
         return y
 
     def regression(self):
