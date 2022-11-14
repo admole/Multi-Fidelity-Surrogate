@@ -6,7 +6,6 @@ import sys
 
 import numpy as np
 from matplotlib import pyplot as plt
-from matplotlib.widgets import TextBox
 
 parent = os.path.abspath('../')
 sys.path.insert(1, parent)
@@ -31,7 +30,7 @@ def reset_constants(line):
 def collect_error(regress, constant, crange):
     reset_constants(regress)
     if constant == 5:
-        regress.constants[4] = 0
+        regress.constants[4] = 1
     mf_error = np.zeros(len(crange))
     hf_error = np.zeros(len(crange))
     lf_error = np.zeros(len(crange))
@@ -45,7 +44,7 @@ def collect_error(regress, constant, crange):
 legend_location = (1, 1)
 line = Line('Sine', 'MLP')
 reset_constants(line)
-line.k_hf = DotProduct()**1 * Matern()
+line.k_hf *= DotProduct()**1
 
 print('c1')
 c1s = np.arange(-1, 2.1, 0.1)
@@ -105,11 +104,13 @@ axs[2, 0].set_xlabel('$c_5$')
 axs[2, 1].set_xlabel('$c_6$')
 
 axs[0, 0].legend(frameon=False)
-axs[0, 1].legend(frameon=False)
-axs[1, 0].legend(frameon=False)
-axs[1, 1].legend(frameon=False)
-axs[2, 0].legend(frameon=False)
-axs[2, 1].legend(frameon=False)
+
+axs[0, 0].set_yscale('log')
+axs[0, 1].set_yscale('log')
+axs[1, 0].set_yscale('log')
+axs[1, 1].set_yscale('log')
+axs[2, 0].set_yscale('log')
+axs[2, 1].set_yscale('log')
 
 
 plt.show()
