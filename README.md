@@ -1,31 +1,40 @@
-# Multi-Fidelity Surrogate
+# Multi-Fidelity Surrogate Modelling of Wall Mounted Cubes
 
-Tests of developing a surrogate model based on multi-fidelity modelling approaches for tandem wall mounted cubes.
- 
-## Aims
+Tests of multi-fidelity surrogate modelling approaches for aerodynamic data of tandem wall mounted cubes.
+Details can be found in [this paper](https://doi.org/10.21203/rs.3.rs-2118035/v1).
 
-Explore the potential of multi-fidelity modelling approaches to extend the range of data points tested experimentally. This can be achieved by developing a surrogate model of the parametric variation (yaw, offset), so that a continuous variation of key parameters can be obtained with only a limited number of ‘true’ data points. In this instance, fine grid LES data is here taken as the reference ‘truth’. Confidence bounds will be incorporated to represent both uncertainty with the numerical method and data-specific experimental error values. This work will take the following steps:
+ A description of the various configurations of cubes used is found [here](Data/README.md).
+The data used is stored [here](10.5281/zenodo.7319244).
 
-1. Undertake a series of low-fidelity simulations to provide inaccurate baseline model results. Coarse
-LES and RANS will be obtained for several parameter points represent variable fidelity predictions.
+## Requirements
+The scripts here have been tested with the following main dependencies:
+- Python (3.6)
+- numpy (1.19.5)
+- pandas (1.0.3)
+- scikit-learn (0.24.2)
+- scikit-optimise (0.9.0)
+- matplotlib (3.2.1)
 
-2. Split reference data set into training and test and define key target parameters in flow to measure.
-Extract data from reference simulations to mimic experimental data and assign confidence levels to
-both ‘experimental’ data and modelling predictions. Use Polynomial Chaos Expansion and/or Deep
-Gaussian Process Regression to bridge fidelities and obtain surrogate model of parametric variation
-(primarily yaw). Compare to test data. Test sensitivity to number and resolution of input simulations.
-
-3. Report on findings including summary of techniques in this field and opportunities for next steps.
-
-## Test Case 
-
-Tandem wall mounted cubes at a Reynolds number of 22,000 is used here as a test case as shown below.
-
-![cubes](Diagrams/tandem_cubes.svg)
-
-This case was chosen because:
-- The flow is fully turbulent and exhibits a complex semi-deterministic time-signal in the wake.
-- The flow is highly three-dimensional in nature and is beyond the reach of low fidelity models.
-- The relative location of the two cubes leads to a non-linear coupling between them.
-- A description of the various configurations of cubes used is found [here](Data/README.md).
+## Retriving data
+To retrieve and extract the data use:
+```
+wget https://zenodo.org/record/7319244/files/Multi_Fidelity_Tandem_Cube_Data.tar.gz
+tar -zxf Multi_Fidelity_Tandem_Cube_Data.tar.gz 
+```
+## Running
+To generate selected figures in the paper:
+```
+cd Plots
+./fields.py
+./yaw.py
+./profiles.py
+./slice.py
+```
+Different command line options are available for each of the scripts to select diffrent outputs or generate animations.
+For more information on these, run:
+```
+./yaw.py -h
+./profiles.py -h
+./slice.py -h
+```
 
