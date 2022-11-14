@@ -57,6 +57,8 @@ class Line:
             self.activ = 'relu'
             self.k_lf = Matern()
         self.k_hf = self.k_lf ** 2 + self.k_lf
+        self.hl_lf = (150, 145, 115, 85, 45, 150, 15)
+        self.hl_hf = (25, 120)
         self.pred_lf_mean = None
         self.pred_lf_std = None
         self.pred_hf_mean = None
@@ -84,17 +86,41 @@ class Line:
         if self.Model == 'MLP':
             self.X, self.pred_lf_mean, self.pred_lf_std,\
                 self.pred_hf_mean, self.pred_hf_std,\
-                self.pred_mf_mean, self.pred_mf_std = regress.mfmlp(hidden_layers1=(8, 32, 64, 32, 8),
-                                                                    hidden_layers2=(8, 32, 32, 8),
+                self.pred_mf_mean, self.pred_mf_std = regress.mfmlp(hidden_layers1=self.hl_lf,
+                                                                    hidden_layers2=self.hl_hf,
                                                                     activation=self.activ)
         else:
             self.X, self.pred_lf_mean, self.pred_lf_std,\
                 self.pred_hf_mean, self.pred_hf_std,\
                 self.pred_mf_mean, self.pred_mf_std = regress.mfgp(self.k_lf, self.k_hf)
 
+    def optimise(self):
+        if self.Model == 'MLP':
+            import random
+            n_runs = 60
+            best_mf_error = float("inf")
+            for i in range(n_runs):
+                # generate random architectures
+                self.hl_lf = []
+                self.hl_hf = []
+                for layer in range(random.randint(1, 8)):
+                    self.hl_lf.append(5 * random.randint(1, 32))
+                for layer in range(random.randint(1, 8)):
+                    self.hl_hf.append(5 * random.randint(1, 32))
+
+                self.regression()
+                mf_error, hf_error, lf_error = self.errors()
+                if mf_error < best_mf_error:
+                    best_lf_hl = self.hl_lf
+                    best_hf_hl = self.hl_hf
+                    best_mf_error = mf_error
+            self.hl_lf = best_lf_hl
+            self.hl_hf = best_hf_hl
+            print(f'Optimised architecture is LF:{self.hl_lf} and HF:{self.hl_hf} \n with error of: {best_mf_error}')
+
     def errors(self):
         from sklearn.metrics import mean_squared_error
         mf_error = mean_squared_error(self.hf(self.X), self.pred_mf_mean)
         hf_error = mean_squared_error(self.hf(self.X), self.pred_hf_mean)
-        lf_error = mean_squared_error(self.lf(self.X), self.pred_lf_mean)
+        lf_error = mean_squared_error(self.hf(self.X), self.pred_lf_mean)
         return mf_error, hf_error, lf_error

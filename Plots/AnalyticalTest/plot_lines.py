@@ -14,6 +14,7 @@ sys.path.insert(1, parent)
 from mfRegression import MFRegress
 import fonts
 from analyticalFunc import Line
+from sklearn.gaussian_process.kernels import (RBF, Matern, DotProduct)
 
 np.random.seed(4)
 
@@ -21,6 +22,8 @@ np.random.seed(4)
 # Plotting --
 legend_location = (1, 1)
 line = Line('Sine', 'MLP')
+# line.optimise()  # Only does anything when MLP
+line.k_hf *= DotProduct()
 line.regression()
 
 fig, axs = plt.subplots(5, figsize=(10, 12), constrained_layout=True, sharex='none', sharey='none')
