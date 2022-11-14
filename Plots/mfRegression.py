@@ -53,9 +53,8 @@ class MFRegress:
                                           n_restarts_optimizer=200,
                                           normalize_y=True).fit(self.x_lf, self.lf)
         gpr_hf = GaussianProcessRegressor(kernel=kernel_hf,
-                                          n_restarts_optimizer=2000,
+                                          n_restarts_optimizer=200,
                                           normalize_y=True).fit(self.x_hf, self.hf)
-        # print(gpr_hf.kernel_.length_scale)
 
         l1mean = gpr_lf.predict(self.x_hf)
 
