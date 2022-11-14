@@ -13,6 +13,7 @@ import json
 import glob
 import pprint
 import argparse
+import PIL
 
 
 def get_surface(case, u_inf=1, surface="zNormal", field="UMean"):
@@ -146,8 +147,8 @@ def main():
         cbar2.set_label(r'$u_{mag}/U_0$')
 
         plt.show()
-        fig.savefig(f'figures/velocityslices-{SURFACE}-RANS.png', bbox_inches='tight', dpi=300)
-        fig2.savefig(f'figures/velocityslices-{SURFACE}-LES.png', bbox_inches='tight', dpi=300)
+        fig.savefig(f'figures/velocityslices-{SURFACE}-RANS-300.tiff', bbox_inches='tight', dpi=400)
+        fig2.savefig(f'figures/velocityslices-{SURFACE}-LES-300.tiff', bbox_inches='tight', dpi=400)
 
 
 if __name__ == "__main__":
