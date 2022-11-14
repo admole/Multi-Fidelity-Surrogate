@@ -51,7 +51,7 @@ class Profiles:
         return alpha_train, velocity_train
 
 
-def regress_profile(sample_location, gpr):
+def regress_profile(sample_location, gpr, optimise):
     rans_profiles = Profiles('RANS', sample_location)
     rans_profiles.collect_profiles()
     les_profiles = Profiles('LES', sample_location)
@@ -72,7 +72,6 @@ def regress_profile(sample_location, gpr):
         from sklearn.gaussian_process.kernels import (Matern, DotProduct)
         alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp(kernel_lf=Matern(), kernel_hf=DotProduct() ** 2 * Matern())
     else:
-        optimise = True
         architectures = []
         if optimise:
             from sklearn.metrics import mean_squared_error
@@ -121,10 +120,11 @@ def regress_profile(sample_location, gpr):
             print(f'architecture = {architectures[worst_run]}')
 
         else:
+            # Architecture from previous hyperparameter optimisation
             architectures.append(([4, 64, 4, 8, 64, 4, 256], [16, 32, 8, 128, 32, 64]))
             best_run = 0
 
-        # rerun regression with optimal MF set-up
+        # run regression with optimal MF set-up
         regress = MFRegress(np.array(rans_profiles.alphas),
                             np.array(rans_profiles.u_interp),
                             np.array(les_training_alpha),
@@ -181,6 +181,7 @@ def main():
     fig1, axes1 = plt.subplots(1, 1, figsize=(11, 3), squeeze=False, constrained_layout=True)
     parser = argparse.ArgumentParser()
     parser.add_argument('-a', action='store_true', help='Create animation')
+    parser.add_argument('-o', action='store_true', help='Run new hyper-parameter optimisation')
     parser.add_argument('-gpr', action='store_true', help='Use GPR (default is MLP)')
     parser.add_argument('angle', type=float, help='Angle to sample profiles at', default=[5, 15, 25], nargs='*')
     args = parser.parse_args()
@@ -197,7 +198,7 @@ def main():
 
     for sample_location in np.arange(0, 14, 1):
         print(f'\nProfile at x = {sample_location}')
-        alpha, lf, hf, mf, y = regress_profile(sample_location, args.gpr)
+        alpha, lf, hf, mf, y = regress_profile(sample_location, args.gpr, args.o)
         lfs.append(lf)
         hfs.append(hf)
         mfs.append(mf)
