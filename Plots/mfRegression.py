@@ -67,7 +67,9 @@ class MFRegress:
             l2_train = np.hstack((self.x_hf, l1mean))
 
         k_mf = kernel_hf * kernel_hf + kernel_hf
-        gpr_mf_l2 = GaussianProcessRegressor(kernel=k_mf, n_restarts_optimizer=200, normalize_y=True).fit(l2_train, self.hf)
+        gpr_mf_l2 = GaussianProcessRegressor(kernel=k_mf,
+                                             n_restarts_optimizer=200,
+                                             normalize_y=True).fit(l2_train, self.hf)
 
         pred_hf_mean = gpr_hf.predict(self.x, return_std=single)
         pred_lf_mean = gpr_lf.predict(self.x, return_std=single)
