@@ -6,7 +6,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import os
-import sys
 import fonts
 import json
 import forces
@@ -19,7 +18,6 @@ def get_yaw(model):
     # Opening JSON file
     j = open(os.path.join(os.getcwd(), f"../Data/{model}/Yaw/inlet_sweep.json"))
     case_settings = json.load(j)
-    # case_settings = [{"Name": "test11"}]
     numcases = len(case_settings)
     path = f"{model}/Yaw/"
     cd1 = cd2 = np.zeros(numcases)
@@ -61,7 +59,8 @@ def plot_yaw(ax, ax2, rans, les, variable, model):
                         les_train[variable].to_numpy())
     if model == 'GPR':
         from sklearn.gaussian_process.kernels import (Matern, DotProduct)
-        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp(kernel_lf=Matern(), kernel_hf=DotProduct()*Matern())
+        alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp(kernel_lf=Matern(),
+                                                                                      kernel_hf=DotProduct()*Matern())
     else:
         from sklearn.metrics import mean_squared_error
         import random
@@ -83,8 +82,6 @@ def plot_yaw(ax, ax2, rans, les, variable, model):
             score_hf = 0
             score = 0
             for train_index, test_index in loo.split(les_train[r'$\alpha$']):
-                # X_train, X_test = X[train_index], X[test_index]
-                # y_train, y_test = y[train_index], y[test_index]
 
                 regress = MFRegress(rans[r'$\alpha$'].to_numpy(),
                                     rans[variable].to_numpy(),
@@ -139,33 +136,22 @@ def plot_yaw(ax, ax2, rans, les, variable, model):
     ax.fill_between(alpha[:, 0], rans_mean[:, 0] - rans_std, rans_mean[:, 0] + rans_std, alpha=0.2, color='r')
     ax.scatter(les_test[r'$\alpha$'], les_test[variable], color=[0.2, 0.7, 1], label='LES Sample (testing)')
     ax.scatter(les_train[r'$\alpha$'], les_train[variable], edgecolors='b', facecolors='none', label=f'LES Sample (training)')
-    # ax.scatter(les_validate[r'$\alpha$'], les_validate[variable], edgecolors='b', facecolors='g', label=f'LES Sample (validate)')
     ax.plot(alpha, les_mean, 'b--', label=f'LES Only {model}')
     ax.fill_between(alpha[:, 0], les_mean[:, 0] - les_std, les_mean[:, 0] + les_std, alpha=0.2, color='b')
     ax.plot(alpha, mf_mean, 'k', label=f'Multi-Fidelity {model}')
     ax.fill_between(alpha[:, 0], mf_mean[:, 0] - mf_std, mf_mean[:, 0] + mf_std,
                     alpha=0.2, color='k')# , label="Model +/- 1 std")
 
-    # if ax == axes1[-1, 0]:
-    #     ax.set_xlabel(r'$\alpha$')
     ax.set_ylabel(variable)
     ax.set_xlim(0, max(alpha))
     ax.legend(frameon=False, ncol=2, columnspacing=0.5)
 
-    # ax2.plot(rans_mean, les_mean, 'b', label='LES Only')
     ax2.plot(rans_mean, mf_mean, 'k', label='Multi-Fidelity')
-    # if ax2 == axes1[-1, 1]:
-    #     ax2.set_xlabel(f'Low-Fidelity')
     ax2.set_ylabel(r'$\mathcal{Y}_H$')
     ax2.legend(frameon=False)
 
 
 def main():
-    # variables = [r'$Cd_1$', r'$Cd_2$', r'$A_{recirc}$']
-    # variables = [r'$Cd_1$', r'$Cd_2$']
-    # variables = [r'$Cd_1$', r'$Cz_1$', r'$Cd_2$', r'$Cz_2$']
-    # variables = [r'$Cd_2$', r'$Cz_2$']
-    # variables = [r'$Cd_2$', r'$Cz_2$', 'Probe']
     variables = [r'$Cd_1$', r'$Cz_1$', r'$Cd_2$', r'$Cz_2$', 'Probe']
     variables = [r'$Cd_2$', 'Probe']
 

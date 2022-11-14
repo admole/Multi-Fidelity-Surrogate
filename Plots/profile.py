@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import os
-import sys
 import fonts
 import json
 import fields
@@ -103,21 +101,16 @@ def regress_profile(sample_location, gpr, optimise):
 
                     kscore = mean_squared_error(np.array(les_training_velocity)[test_index][0],
                                                 mf_mean[alpha[:, 0] == np.array(les_training_alpha)[test_index][0]][0])
-                    # print(kscore)
                     score += kscore
                 scores.append(score)
                 architectures.append((lf_hidden_layers, hf_hidden_layers))
 
             best_run = np.argmin(np.abs(scores))
             worst_run = np.argmax(np.abs(scores))
-            print('Best configuration')
+            print('Best configuration:')
             print(f'iteration= {best_run}')
             print(f'score = {scores[best_run]}')
             print(f'architecture = {architectures[best_run]}')
-            print('worst configuration')
-            print(f'iteration= {worst_run}')
-            print(f'score = {scores[worst_run]}')
-            print(f'architecture = {architectures[worst_run]}')
 
         else:
             # Architecture from previous hyperparameter optimisation
@@ -149,7 +142,6 @@ def draw(it, ax, angles, hf, lf, mf, y, model):
     ax[0, 0].set_xlim(0, 15)
     ax[0, 0].set_xlabel(r'$x/H \, + \, U/U_0$')
     ax[0, 0].set_ylabel(r'$y/H$')
-    # ax[0, 0].set_title(fr'$\angle = {sample_angle} $', fontsize=40)
     ax[0, 0].set_aspect('equal', adjustable='box')
     
     print(f'Plotting mfr profile at angle {angle}')
@@ -211,6 +203,7 @@ def main():
     else:
         for ang in sample_angle:
             draw(ang * len(alpha) / (10 * alpha[-1]), axes1, alpha, hfs, lfs, mfs, ys, model)
+            plt.show()
             fig1.savefig(f'figures/profiles_{model}_{int(ang)}.pdf', bbox_inches='tight')
 
 

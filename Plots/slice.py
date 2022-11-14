@@ -4,9 +4,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 import os
-import sys
 import fonts
 import json
 import fields
@@ -75,7 +73,8 @@ def regress_slice(sample_location,):
                         embedding_theory=True,)
 
     from sklearn.gaussian_process.kernels import (Matern, DotProduct)
-    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp(kernel_lf=Matern(), kernel_hf=DotProduct()**2*Matern())
+    alpha, rans_mean, rans_std, les_mean, les_std, mf_mean, mf_std = regress.mfgp(kernel_lf=Matern(),
+                                                                                  kernel_hf=DotProduct()**2*Matern())
     return alpha, rans_slices, les_slices, mf_mean, rans_slices.grid[0]
 
 
@@ -125,7 +124,6 @@ def draw(it, fig, ax, angles, hf, lf, mf, grid, animation):
 
     for ai in ax[:]:
         for a in ai[:]:
-            # a.clear()
             fields.add_cubes(a, 'y')
             a.set_aspect('equal', adjustable='box')
     for a in ax[:, 0]:
@@ -158,7 +156,6 @@ def main():
                                    sharex='all', sharey='all')
         anim = animation.FuncAnimation(fig1, draw, fargs=(fig1, axes1, alpha, hf, lf, mf, grid, args.a),
                                        frames=int(len(alpha)/10), interval=1, blit=False)
-        # plt.show()
         anim.save('animations/slices_animation.mp4', fps=5, dpi=400)
     else:
         fig1, axes1 = plt.subplots(1, 1, figsize=(7, 6.5),
@@ -166,8 +163,7 @@ def main():
                                    sharex='all', sharey='all')
         for ang in sample_angle:
             draw(ang * len(alpha) / (10 * alpha[-1]), fig1, axes1, alpha, hf, lf, mf, grid, args.a)
-            # plt.show()
-            # fig1.savefig(f'figures/slices_{int(ang)}.png', bbox_inches='tight', dpi=300)
+            plt.show()
             fig1.savefig(f'figures/slices_{int(ang)}.svg', bbox_inches='tight')
 
 

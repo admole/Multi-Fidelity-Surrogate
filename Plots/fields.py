@@ -6,12 +6,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from matplotlib import animation
-import os
-import sys
 import fonts
-import json
 import glob
-import pprint
 import argparse
 import PIL
 
@@ -26,7 +22,6 @@ def get_surface(case, u_inf=1, surface="zNormal", field="UMean"):
             prev_line = line
             line = f.readline()
             cnt += 1
-            # print(prev_line)
     header = prev_line.strip().lstrip('# ').split()
     data = pd.read_csv(file, comment='#', sep=r'\s+', names=header, header=None, engine='python')
 
@@ -75,7 +70,6 @@ def plot_surface(ax, data, field, angle):
         loc1, loc2 = data['xx'], data[f'x{normal}']
 
     contour = ax.tricontourf(loc1, loc2, magnitude, cmap='inferno', levels=np.arange(0, 1.5, 0.01), antialiased=False)
-    # contour = ax.tricontour(data['x'], data[normal], data[f'{field}_x'], colors='k', linewidths=1, levels=[0])
     ax.set_aspect('equal')
     ax.set_ylim(-4.25, 4.25)
     add_cubes(ax, SURFACE[0])
@@ -107,8 +101,7 @@ def draw(it, ax1, ax2, angles):
 RANS_CASES = [0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40]
 LES_CASES = [0, 5, 10, 15, 20, 25, 30]
 ALL_CASES = list(set(RANS_CASES) | set(LES_CASES))
-SURFACE = 'yNormal'  # 'yNormal' 'yHalf' 'zNormal'
-# contours on z-normal plane showing strong grid artifacts (maybe triangulation)
+SURFACE = 'yNormal'  # 'yNormal' 'yHalf'
 
 
 def main():
