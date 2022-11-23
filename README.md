@@ -4,7 +4,7 @@ Tests of multi-fidelity surrogate modelling approaches for aerodynamic data of t
 Details can be found in [this paper](https://doi.org/10.21203/rs.3.rs-2118035/v1).
 
  A description of the various configurations of cubes used is found [here](Data/README.md).
-The data used is stored [here](10.5281/zenodo.7319244).
+The data used is stored [here](https://doi.org/10.5281/zenodo.7319243).
 
 ## Requirements
 The scripts here have been tested with the following main dependencies:
