@@ -27,27 +27,35 @@ class MFRegress:
         self.x = scaler.transform(self.x)
         if len(np.shape(self.lf)) == 1:
             self.lf = self.lf.T
-            self.hf = self.hf.T
             self.lf = self.lf.reshape(-1, 1)
+        if len(np.shape(self.hf)) == 1:
+            self.hf = self.hf.T
             self.hf = self.hf.reshape(-1, 1)
-        datascaler = MinMaxScaler()
-        datascaler.fit(self.lf)
-        self.lf = datascaler.transform(self.lf)
-        self.hf = datascaler.transform(self.hf)
+        datascaler_lf = MinMaxScaler()
+        datascaler_hf = MinMaxScaler()
+        datascaler_lf.fit(self.lf)
+        datascaler_hf.fit(self.hf)
+        self.lf = datascaler_lf.transform(self.lf)
+        self.hf = datascaler_hf.transform(self.hf)
 
-        return scaler, datascaler
+        return scaler, datascaler_lf, datascaler_hf
 
     def mfgp(self, kernel_lf, kernel_hf):
         import numpy as np
         from sklearn.gaussian_process import GaussianProcessRegressor
 
-        if len(np.shape(self.lf)) == 1:
-            single = True
-            print('single')
-        else:
-            single = False
+        hf_single = (len(np.shape(self.hf)) == 1)
+        lf_single = (len(np.shape(self.lf)) == 1)
 
-        scaler, datascaler = self.prep()
+        print(f'HF_single = {hf_single}')
+        print(f'LF_single = {lf_single}')
+
+        scaler, datascaler_lf, datascaler_hf = self.prep()
+
+        print(np.shape(self.x_lf))
+        print(np.shape(self.lf))
+        print(np.shape(self.x_hf))
+        print(np.shape(self.hf))
 
         gpr_lf = GaussianProcessRegressor(kernel=kernel_lf,
                                           n_restarts_optimizer=200,
@@ -57,6 +65,7 @@ class MFRegress:
                                           normalize_y=True).fit(self.x_hf, self.hf)
 
         l1mean = gpr_lf.predict(self.x_hf)
+        l1mean = l1mean.reshape(-1, 1)
 
         if self.embedding_theory:
             l1mean_shift1 = gpr_lf.predict(self.x_hf+0.02)
@@ -70,28 +79,34 @@ class MFRegress:
                                              n_restarts_optimizer=200,
                                              normalize_y=True).fit(l2_train, self.hf)
 
-        pred_hf_mean = gpr_hf.predict(self.x, return_std=single)
-        pred_lf_mean = gpr_lf.predict(self.x, return_std=single)
+        pred_hf_mean = gpr_hf.predict(self.x, return_std=hf_single)
+        pred_lf_mean = gpr_lf.predict(self.x, return_std=lf_single)
 
-        if single:
-            pred_lf_std = pred_lf_mean[1]
-            pred_lf_mean = pred_lf_mean[0]
+        if hf_single:
             pred_hf_std = pred_hf_mean[1]
             pred_hf_mean = pred_hf_mean[0]
         else:
-            pred_lf_std = np.zeros(len(pred_lf_mean))
             pred_hf_std = np.zeros(len(pred_hf_mean))
+
+        if lf_single:
+            pred_lf_std = pred_lf_mean[1]
+            pred_lf_mean = pred_lf_mean[0]
+        else:
+            pred_lf_std = np.zeros(len(pred_lf_mean))
+
+        pred_lf_mean = pred_lf_mean.reshape(-1, 1)
 
         if self.embedding_theory:
             pred_lf_mean_shift1 = gpr_lf.predict(self.x + 0.02, return_std=False)
             pred_lf_mean_shift2 = gpr_lf.predict(self.x + 0.04, return_std=False)
             l2_test = np.hstack((self.x, pred_lf_mean, pred_lf_mean_shift1, pred_lf_mean_shift2))
         else:
+            print(f'x={np.shape(self.x)}, y={np.shape(pred_lf_mean)}')
             l2_test = np.hstack((self.x, pred_lf_mean))
 
-        pred_mf_mean = gpr_mf_l2.predict(l2_test, return_std=single)
+        pred_mf_mean = gpr_mf_l2.predict(l2_test, return_std=hf_single)
 
-        if single:
+        if hf_single:
             pred_mf_std = pred_mf_mean[1]
             pred_mf_mean = pred_mf_mean[0]
 
@@ -99,13 +114,14 @@ class MFRegress:
             pred_mf_std = np.zeros(len(pred_mf_mean))
 
         self.x = scaler.inverse_transform(self.x)
-        pred_lf_mean = datascaler.inverse_transform(pred_lf_mean)
-        pred_hf_mean = datascaler.inverse_transform(pred_hf_mean)
-        pred_mf_mean = datascaler.inverse_transform(pred_mf_mean)
-        if single:
-            pred_lf_std *= datascaler.data_range_
-            pred_hf_std *= datascaler.data_range_
-            pred_mf_std *= datascaler.data_range_
+        pred_lf_mean = datascaler_lf.inverse_transform(pred_lf_mean)
+        pred_hf_mean = datascaler_hf.inverse_transform(pred_hf_mean)
+        pred_mf_mean = datascaler_hf.inverse_transform(pred_mf_mean)
+        if lf_single:
+            pred_lf_std *= datascaler_lf.data_range_
+        if hf_single:
+            pred_hf_std *= datascaler_hf.data_range_
+            pred_mf_std *= datascaler_hf.data_range_
 
         return self.x, pred_lf_mean, pred_lf_std, pred_hf_mean, pred_hf_std, pred_mf_mean, pred_mf_std
 
