@@ -21,21 +21,29 @@ surf1 = Surface('Sine', 'GPR')
 # surf1.regression()
 
 # PLOTTING FOR TESTING
-fig = plt.figure(figsize=(15, 10))
+# fig = plt.figure(figsize=(11, 15), constrained_layout=True)
+fig = plt.figure(figsize=(11, 15))
 
 axs = [None] * 6
 
 # Plot exact solution
 for i in range(len(axs)):
-    axs[i] = fig.add_subplot(2, 3, i + 1, projection='3d')
+    axs[i] = fig.add_subplot(3, 2, i + 1, projection='3d')
     # axs[i].axes(projection='3d')
     x, y = np.meshgrid(surf1.X, surf1.Y)
     axs[i].plot_surface(x, y, surf1.hf(surf1.X),  # rstride=1, cstride=1,
                         cmap='viridis', edgecolor='none', alpha=0.6)
 
-    axs[i].set_xlabel('x')
-    axs[i].set_ylabel('y')
-    axs[i].set_zlabel('z')
+    axs[i].set_xlabel('Parameter Space')
+    axs[i].set_ylabel('Physical Space')
+    axs[i].set_zlabel('Quantity of Interest')
+    axs[i].tick_params(axis='both', which='both',
+                       labelbottom=False,
+                       labelleft=False,
+                       labelright=False,
+                       labeltop=False, )
+
+
 
 # Plot LF 0D samples
 for i in [1, 3, 5]:
@@ -75,4 +83,6 @@ def on_move(event):
 
 c1 = fig.canvas.mpl_connect('motion_notify_event', on_move)
 
-plt.show()
+plt.tight_layout()
+# plt.show()
+fig.savefig(f'figures/mixed.pdf')#, bbox_inches='tight')
