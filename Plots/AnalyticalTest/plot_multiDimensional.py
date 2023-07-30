@@ -71,6 +71,8 @@ axs[3].set_title('LF Model')
 axs[4].set_title('HF Model')
 axs[5].set_title('MF Model')
 
+MF_MSE, HF_MSE, LF_MSE = surf1.errors()
+print(f'LF MSE = {LF_MSE:.5f} HF MSE = {HF_MSE:.5f} MF MSE = {MF_MSE:.5f}')
 
 def on_move(event):
     if event.inaxes == axs[0]:
